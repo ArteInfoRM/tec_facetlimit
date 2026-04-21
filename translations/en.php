@@ -29,20 +29,17 @@ $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_4d9ac946f92f7211e40671513c7
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_69242344e42d0b36296e7e1e18023684'] = 'Invalid IP addresses:';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_257d1f8c23bb6196950697134bfdfca7'] = 'Whitelist saved.';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_7123634f50fb9fbbccf9f88f55e78091'] = 'Log file cleared.';
-// blocked.tpl — front-end blocked page
-$_MODULE['<{tec_facetlimit}prestashop>blocked_db629e4600228d95bc9f70c28f3e0c03'] = 'Too many requests';
-$_MODULE['<{tec_facetlimit}prestashop>blocked_45269112b127ecef0c2140b0cbbaadd7'] = 'You have sent too many filter requests in a short time. Please wait a moment before continuing your navigation.';
-$_MODULE['<{tec_facetlimit}prestashop>blocked_469bba0a564235dfceede42db14f17b0'] = 'Back';
-
-// configure.tpl — backend status panel
-$_MODULE['<{tec_facetlimit}prestashop>configure_94754249b11cc03e82dba29f5541f994'] = 'Rate limiter backend';
-$_MODULE['<{tec_facetlimit}prestashop>configure_d9045d1cea7549afb30f8446667b3833'] = 'APCu — atomic shared-memory counter active.';
-$_MODULE['<{tec_facetlimit}prestashop>configure_06449291b9c5e1e44fb9328bfdaf4f55'] = 'APCu not available — using PS Cache fallback. Install the php-apcu extension for more reliable rate limiting.';
+$_MODULE['<{tec_facetlimit}prestashop>blocked_eeb13468b73d93fa8bcbe3ebae6df720'] = 'Too many requests';
+$_MODULE['<{tec_facetlimit}prestashop>blocked_4867b3ffdfd5200f727d3adff107e908'] = 'You have sent too many filter requests in a short time. Please wait a moment before continuing your navigation.';
+$_MODULE['<{tec_facetlimit}prestashop>blocked_0557fa923dcee4d0f86b1409f5c2167f'] = 'Back';
+$_MODULE['<{tec_facetlimit}prestashop>configure_c50a9084860fdf47af6deee648281022'] = ' Rate limiter backend (optional)';
+$_MODULE['<{tec_facetlimit}prestashop>configure_bd225428167fbb7076c17e6f5b6d287c'] = 'APCu — atomic shared-memory counter active.';
+$_MODULE['<{tec_facetlimit}prestashop>configure_13465598b6b6a6370a168e7f7a74c44e'] = 'APCu not available - using PS Cache fallback. Install the php-apcu extension for more reliable rate limiting. ';
 $_MODULE['<{tec_facetlimit}prestashop>configure_c816a03ed27a1cea6346a954f4f4cda3'] = 'Bot scoring reference';
 $_MODULE['<{tec_facetlimit}prestashop>configure_085fea7abdc5d904fe69a3081efd7398'] = 'Signal';
 $_MODULE['<{tec_facetlimit}prestashop>configure_5dd135d1bcfa7f63c3b7f25425c2a4a1'] = 'Score';
 $_MODULE['<{tec_facetlimit}prestashop>configure_f4c6f851b00d5518bf888815de279aba'] = 'Notes';
-$_MODULE['<{tec_facetlimit}prestashop>configure_63e72489ffeda572fbeb0ef21257f712'] = 'Blocks alone — no real browser has used HTTP/1.0 since 1996. Auto-disabled when a reverse-proxy header is detected (X-Forwarded-For, CF-Connecting-IP).';
+$_MODULE['<{tec_facetlimit}prestashop>configure_20340bff071e855b1291a3fb36ab2012'] = 'Blocks alone — no real browser has used HTTP/1.0 since 1996. Auto-disabled when a reverse-proxy header is detected (X-Forwarded-For, CF-Connecting-IP).';
 $_MODULE['<{tec_facetlimit}prestashop>configure_7b4fe692051a816f3968424db75d12c4'] = 'No User-Agent';
 $_MODULE['<{tec_facetlimit}prestashop>configure_09749c549dfac2fee1c5388afbb49ce5'] = 'Blocks alone — non-browser client.';
 $_MODULE['<{tec_facetlimit}prestashop>configure_63807e5c2e4bdcb3446579bffd05ae76'] = 'No PrestaShop-* cookie';

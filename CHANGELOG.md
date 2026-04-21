@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.6] — 2026-04-21
+
+### Fixed
+- Translation keys for IT, DE, FR, ES corrected to match PS-generated hashes (en.php regenerated via PS back-office). Manually computed MD5 keys differed from PS internal computation — translations were silently falling back to English on all non-EN shops.
+- Module `$this->version` bumped to match actual release (was stuck at 1.1.2).
+
+---
+
 ## [1.1.5] — 2026-04-21
 
 ### Fixed

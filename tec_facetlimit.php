@@ -38,7 +38,7 @@ class Tec_FacetLimit extends Module
     {
         $this->name          = 'tec_facetlimit';
         $this->tab           = 'administration';
-        $this->version       = '1.1.2';
+        $this->version       = '1.1.6';
         $this->author        = 'Tecnoacquisti.com';
         $this->need_instance = 0;
         $this->bootstrap     = true;

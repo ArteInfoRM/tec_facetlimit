@@ -44,19 +44,19 @@ $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_257d1f8c23bb6196950697134bf
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_7123634f50fb9fbbccf9f88f55e78091'] = 'Log-Datei geleert.';
 
 // blocked.tpl — front-end blocked page
-$_MODULE['<{tec_facetlimit}prestashop>blocked_db629e4600228d95bc9f70c28f3e0c03'] = 'Zu viele Anfragen';
-$_MODULE['<{tec_facetlimit}prestashop>blocked_45269112b127ecef0c2140b0cbbaadd7'] = 'Sie haben in kurzer Zeit zu viele Filteranfragen gesendet. Bitte warten Sie einen Moment, bevor Sie weiter navigieren.';
-$_MODULE['<{tec_facetlimit}prestashop>blocked_469bba0a564235dfceede42db14f17b0'] = 'Zurück';
+$_MODULE['<{tec_facetlimit}prestashop>blocked_eeb13468b73d93fa8bcbe3ebae6df720'] = 'Zu viele Anfragen';
+$_MODULE['<{tec_facetlimit}prestashop>blocked_4867b3ffdfd5200f727d3adff107e908'] = 'Sie haben in kurzer Zeit zu viele Filteranfragen gesendet. Bitte warten Sie einen Moment, bevor Sie weiter navigieren.';
+$_MODULE['<{tec_facetlimit}prestashop>blocked_0557fa923dcee4d0f86b1409f5c2167f'] = 'Zurück';
 
 // configure.tpl — scoring reference panel
-$_MODULE['<{tec_facetlimit}prestashop>configure_94754249b11cc03e82dba29f5541f994'] = 'Rate-Limiter-Backend';
-$_MODULE['<{tec_facetlimit}prestashop>configure_d9045d1cea7549afb30f8446667b3833'] = 'APCu — atomarer Shared-Memory-Zähler aktiv.';
-$_MODULE['<{tec_facetlimit}prestashop>configure_06449291b9c5e1e44fb9328bfdaf4f55'] = 'APCu nicht verfügbar — PS-Cache-Fallback wird verwendet. Installieren Sie die php-apcu-Erweiterung für zuverlässigeres Rate-Limiting.';
+$_MODULE['<{tec_facetlimit}prestashop>configure_c50a9084860fdf47af6deee648281022'] = 'Rate-Limiter-Backend';
+$_MODULE['<{tec_facetlimit}prestashop>configure_bd225428167fbb7076c17e6f5b6d287c'] = 'APCu — atomarer Shared-Memory-Zähler aktiv.';
+$_MODULE['<{tec_facetlimit}prestashop>configure_13465598b6b6a6370a168e7f7a74c44e'] = 'APCu nicht verfügbar — PS-Cache-Fallback wird verwendet. Installieren Sie die php-apcu-Erweiterung für zuverlässigeres Rate-Limiting.';
 $_MODULE['<{tec_facetlimit}prestashop>configure_c816a03ed27a1cea6346a954f4f4cda3'] = 'Bot-Score-Referenz';
 $_MODULE['<{tec_facetlimit}prestashop>configure_085fea7abdc5d904fe69a3081efd7398'] = 'Signal';
 $_MODULE['<{tec_facetlimit}prestashop>configure_5dd135d1bcfa7f63c3b7f25425c2a4a1'] = 'Score';
 $_MODULE['<{tec_facetlimit}prestashop>configure_f4c6f851b00d5518bf888815de279aba'] = 'Hinweise';
-$_MODULE['<{tec_facetlimit}prestashop>configure_63e72489ffeda572fbeb0ef21257f712'] = 'Blockiert allein — kein echter Browser nutzt HTTP/1.0 seit 1996. Automatisch deaktiviert, wenn ein Reverse-Proxy-Header erkannt wird (X-Forwarded-For, CF-Connecting-IP).';
+$_MODULE['<{tec_facetlimit}prestashop>configure_20340bff071e855b1291a3fb36ab2012'] = 'Blockiert allein — kein echter Browser nutzt HTTP/1.0 seit 1996. Automatisch deaktiviert, wenn ein Reverse-Proxy-Header erkannt wird (X-Forwarded-For, CF-Connecting-IP).';
 $_MODULE['<{tec_facetlimit}prestashop>configure_7b4fe692051a816f3968424db75d12c4'] = 'Kein User-Agent';
 $_MODULE['<{tec_facetlimit}prestashop>configure_09749c549dfac2fee1c5388afbb49ce5'] = 'Blockiert allein — kein Browser-Client.';
 $_MODULE['<{tec_facetlimit}prestashop>configure_63807e5c2e4bdcb3446579bffd05ae76'] = 'Kein PrestaShop-*-Cookie';
