@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.3] — 2026-04-21
+
+### Fixed
+- PS Cache fallback in `increment()`: stored `[count, expiry]` tuple to manage TTL internally, avoiding the `Cache::store()` with no TTL issue where CacheFs treated TTL=0 as immediate expiry, causing the counter to reset on every request.
+
+### Added
+- Back-office **Rate limiter backend** panel: shows a green `APCu` badge when the APCu extension is available, or a yellow `PS Cache` badge with an install hint otherwise.
+- Translations for the new backend status strings in IT, DE, FR, ES.
+
+---
+
 ## [1.1.2] — 2026-04-21
 
 ### Fixed
