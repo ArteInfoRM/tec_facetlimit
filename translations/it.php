@@ -27,8 +27,8 @@ $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_6181ff3e92854c039ce4c10d085
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_e9388dbf238b125415284c9215e2d7de'] = 'Blocca quando il punteggio combinato dei segnali raggiunge questo valore. Più alto = più permissivo. Punteggi: HTTP/1.0 +4, no User-Agent +3, no cookie PS +2, no Referer +1.';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_ac58cbc48768097eb71ee0b9ccd3324d'] = 'Molto aggressivo (qualsiasi segnale blocca)';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_42d2538d10b88d08d87bb7f5d97d675a'] = 'Aggressivo (solo no-cookie blocca)';
-$_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_27b2dd67f7d06f44071fce60728515d7'] = 'Consigliato · default (HTTP/1.0, no-UA, no-cookie+no-referer)';
-$_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_2c8572181c79b89f62ead3f3f66c8490'] = 'Conservativo (HTTP/1.0 o no-UA+no-referer)';
+$_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_d32f282b7d765ad213f50f3b47da1c32'] = 'Consigliato (HTTP/1.0, no-UA, no-cookie+no-referer)';
+$_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_fb117c7b861e642e2dcd233d24724660'] = 'Consigliato · default (HTTP/1.0 o no-UA+no-referer)';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_8732ca6151769849628559901389aec3'] = 'Rigoroso (HTTP/1.0+no-referer o no-cookie+no-UA)';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_1312a626c238b6003536fc44b4fad1e2'] = 'Molto rigoroso (HTTP/1.0+no-cookie o tutti e tre i segnali soft)';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_3b55f8a0cc7da5d64d989b446f17c589'] = 'Massimo (HTTP/1.0+no-UA o HTTP/1.0+no-cookie+no-referer)';
@@ -43,6 +43,11 @@ $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_69242344e42d0b36296e7e1e180
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_257d1f8c23bb6196950697134bfdfca7'] = 'Whitelist salvata.';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_7123634f50fb9fbbccf9f88f55e78091'] = 'File di log svuotato.';
 
+// blocked.tpl — front-end blocked page
+$_MODULE['<{tec_facetlimit}prestashop>blocked_db629e4600228d95bc9f70c28f3e0c03'] = 'Troppe richieste';
+$_MODULE['<{tec_facetlimit}prestashop>blocked_45269112b127ecef0c2140b0cbbaadd7'] = 'Hai inviato troppe richieste di filtro in poco tempo. Attendi un momento prima di continuare la navigazione.';
+$_MODULE['<{tec_facetlimit}prestashop>blocked_469bba0a564235dfceede42db14f17b0'] = 'Torna alla pagina';
+
 // configure.tpl — scoring reference panel
 $_MODULE['<{tec_facetlimit}prestashop>configure_94754249b11cc03e82dba29f5541f994'] = 'Backend rate limiter';
 $_MODULE['<{tec_facetlimit}prestashop>configure_d9045d1cea7549afb30f8446667b3833'] = 'APCu — contatore atomico in memoria condivisa attivo.';
@@ -51,7 +56,7 @@ $_MODULE['<{tec_facetlimit}prestashop>configure_c816a03ed27a1cea6346a954f4f4cda3
 $_MODULE['<{tec_facetlimit}prestashop>configure_085fea7abdc5d904fe69a3081efd7398'] = 'Segnale';
 $_MODULE['<{tec_facetlimit}prestashop>configure_5dd135d1bcfa7f63c3b7f25425c2a4a1'] = 'Punteggio';
 $_MODULE['<{tec_facetlimit}prestashop>configure_f4c6f851b00d5518bf888815de279aba'] = 'Note';
-$_MODULE['<{tec_facetlimit}prestashop>configure_5c0a7dc0964276bbee0efa24d2838588'] = 'Blocca da solo — nessun browser reale usa HTTP/1.0 dal 1996.';
+$_MODULE['<{tec_facetlimit}prestashop>configure_63e72489ffeda572fbeb0ef21257f712'] = 'Blocca da solo — nessun browser reale usa HTTP/1.0 dal 1996. Disabilitato automaticamente quando viene rilevato un header di reverse proxy (X-Forwarded-For, CF-Connecting-IP).';
 $_MODULE['<{tec_facetlimit}prestashop>configure_7b4fe692051a816f3968424db75d12c4'] = 'User-Agent assente';
 $_MODULE['<{tec_facetlimit}prestashop>configure_09749c549dfac2fee1c5388afbb49ce5'] = 'Blocca da solo — client non-browser.';
 $_MODULE['<{tec_facetlimit}prestashop>configure_63807e5c2e4bdcb3446579bffd05ae76'] = 'Cookie PrestaShop-* assente';

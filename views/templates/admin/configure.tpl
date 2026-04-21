@@ -43,7 +43,7 @@
                 <tr>
                     <td><code>HTTP/1.0</code></td>
                     <td><strong>4</strong></td>
-                    <td>{l s='Blocks alone — no real browser has used HTTP/1.0 since 1996.' mod='tec_facetlimit'}</td>
+                    <td>{l s='Blocks alone — no real browser has used HTTP/1.0 since 1996. Auto-disabled when a reverse-proxy header is detected (X-Forwarded-For, CF-Connecting-IP).' mod='tec_facetlimit'}</td>
                 </tr>
                 <tr>
                     <td>{l s='No User-Agent' mod='tec_facetlimit'}</td>

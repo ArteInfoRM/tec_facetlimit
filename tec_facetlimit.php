@@ -22,7 +22,7 @@ class Tec_FacetLimit extends Module
 
     const DEFAULT_LIMIT      = 30;   // max richieste ?q= per finestra per IP
     const DEFAULT_WINDOW     = 60;   // finestra in secondi
-    const DEFAULT_BOT_SCORE  = 3;    // soglia punteggio bot oltre la quale si blocca
+    const DEFAULT_BOT_SCORE  = 4;    // soglia punteggio bot oltre la quale si blocca
 
     // ── Punteggi fingerprinting bot ──────────────────────────────────────────
     // HTTP/1.0: quasi nessun browser reale usa ancora questo protocollo
@@ -159,8 +159,8 @@ class Tec_FacetLimit extends Module
                             'query' => [
                                 ['id' => 1, 'name' => '1 — ' . $this->l('Very aggressive (any signal blocks)')],
                                 ['id' => 2, 'name' => '2 — ' . $this->l('Aggressive (no-cookie alone blocks)')],
-                                ['id' => 3, 'name' => '3 — ' . $this->l('Recommended · default (HTTP/1.0, no-UA, no-cookie+no-referer)')],
-                                ['id' => 4, 'name' => '4 — ' . $this->l('Conservative (HTTP/1.0 or no-UA+no-referer)')],
+                                ['id' => 3, 'name' => '3 — ' . $this->l('Recommended (HTTP/1.0, no-UA, no-cookie+no-referer)')],
+                                ['id' => 4, 'name' => '4 — ' . $this->l('Recommended · default (HTTP/1.0 or no-UA+no-referer)')],
                                 ['id' => 5, 'name' => '5 — ' . $this->l('Strict (HTTP/1.0+no-referer or no-cookie+no-UA)')],
                                 ['id' => 6, 'name' => '6 — ' . $this->l('Very strict (HTTP/1.0+no-cookie or all three soft signals)')],
                                 ['id' => 7, 'name' => '7 — ' . $this->l('Maximum (HTTP/1.0+no-UA or HTTP/1.0+no-cookie+no-referer)')],
@@ -388,8 +388,13 @@ class Tec_FacetLimit extends Module
         $score   = 0;
         $reasons = [];
 
-        // HTTP/1.0: i browser moderni usano almeno HTTP/1.1
-        if (($_SERVER['SERVER_PROTOCOL'] ?? '') === 'HTTP/1.0') {
+        // HTTP/1.0: ignorato dietro reverse proxy (Nginx, Cloudflare, ecc.) perché
+        // SERVER_PROTOCOL riflette la connessione interna, non quella del client reale.
+        $behindProxy = isset($_SERVER['HTTP_X_FORWARDED_FOR'])
+            || isset($_SERVER['HTTP_X_REAL_IP'])
+            || isset($_SERVER['HTTP_CF_CONNECTING_IP']);
+
+        if (!$behindProxy && ($_SERVER['SERVER_PROTOCOL'] ?? '') === 'HTTP/1.0') {
             $score += self::SCORE_HTTP10;
             $reasons[] = 'http10';
         }
@@ -512,11 +517,35 @@ class Tec_FacetLimit extends Module
     private function sendBlocked(int $retryAfter = 0): void
     {
         http_response_code(429);
-        header('Content-Type: application/json; charset=utf-8');
         if ($retryAfter > 0) {
             header('Retry-After: ' . $retryAfter);
         }
-        echo json_encode(['error' => 'rate_limited']);
+
+        $isAjax = strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest';
+        if ($isAjax) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['error' => 'rate_limited']);
+            exit;
+        }
+
+        // Navigazione diretta: pagina HTML con link di ritorno alla categoria
+        $uri   = $_SERVER['REQUEST_URI'] ?? '/';
+        $parts = parse_url($uri);
+        $back  = $parts['path'] ?? '/';
+        if (!empty($parts['query'])) {
+            parse_str($parts['query'], $params);
+            unset($params['q']);
+            if ($params) {
+                $back .= '?' . http_build_query($params);
+            }
+        }
+
+        $this->context->smarty->assign([
+            'blocked_back_url' => $back,
+        ]);
+
+        header('Content-Type: text/html; charset=utf-8');
+        echo $this->context->smarty->fetch($this->local_path . 'views/templates/front/blocked.tpl');
         exit;
     }
 

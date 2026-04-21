@@ -16,8 +16,8 @@ $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_6181ff3e92854c039ce4c10d085
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_e9388dbf238b125415284c9215e2d7de'] = 'Block when the combined signal score reaches this value. Higher = more permissive. Scores: HTTP/1.0 +4, no User-Agent +3, no PS cookie +2, no Referer +1.';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_ac58cbc48768097eb71ee0b9ccd3324d'] = 'Very aggressive (any signal blocks)';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_42d2538d10b88d08d87bb7f5d97d675a'] = 'Aggressive (no-cookie alone blocks)';
-$_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_27b2dd67f7d06f44071fce60728515d7'] = 'Recommended · default (HTTP/1.0, no-UA, no-cookie+no-referer)';
-$_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_2c8572181c79b89f62ead3f3f66c8490'] = 'Conservative (HTTP/1.0 or no-UA+no-referer)';
+$_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_d32f282b7d765ad213f50f3b47da1c32'] = 'Recommended (HTTP/1.0, no-UA, no-cookie+no-referer)';
+$_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_fb117c7b861e642e2dcd233d24724660'] = 'Recommended · default (HTTP/1.0 or no-UA+no-referer)';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_8732ca6151769849628559901389aec3'] = 'Strict (HTTP/1.0+no-referer or no-cookie+no-UA)';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_1312a626c238b6003536fc44b4fad1e2'] = 'Very strict (HTTP/1.0+no-cookie or all three soft signals)';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_3b55f8a0cc7da5d64d989b446f17c589'] = 'Maximum (HTTP/1.0+no-UA or HTTP/1.0+no-cookie+no-referer)';
@@ -29,6 +29,12 @@ $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_4d9ac946f92f7211e40671513c7
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_69242344e42d0b36296e7e1e18023684'] = 'Invalid IP addresses:';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_257d1f8c23bb6196950697134bfdfca7'] = 'Whitelist saved.';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_7123634f50fb9fbbccf9f88f55e78091'] = 'Log file cleared.';
+// blocked.tpl — front-end blocked page
+$_MODULE['<{tec_facetlimit}prestashop>blocked_db629e4600228d95bc9f70c28f3e0c03'] = 'Too many requests';
+$_MODULE['<{tec_facetlimit}prestashop>blocked_45269112b127ecef0c2140b0cbbaadd7'] = 'You have sent too many filter requests in a short time. Please wait a moment before continuing your navigation.';
+$_MODULE['<{tec_facetlimit}prestashop>blocked_469bba0a564235dfceede42db14f17b0'] = 'Back';
+
+// configure.tpl — backend status panel
 $_MODULE['<{tec_facetlimit}prestashop>configure_94754249b11cc03e82dba29f5541f994'] = 'Rate limiter backend';
 $_MODULE['<{tec_facetlimit}prestashop>configure_d9045d1cea7549afb30f8446667b3833'] = 'APCu — atomic shared-memory counter active.';
 $_MODULE['<{tec_facetlimit}prestashop>configure_06449291b9c5e1e44fb9328bfdaf4f55'] = 'APCu not available — using PS Cache fallback. Install the php-apcu extension for more reliable rate limiting.';
@@ -36,7 +42,7 @@ $_MODULE['<{tec_facetlimit}prestashop>configure_c816a03ed27a1cea6346a954f4f4cda3
 $_MODULE['<{tec_facetlimit}prestashop>configure_085fea7abdc5d904fe69a3081efd7398'] = 'Signal';
 $_MODULE['<{tec_facetlimit}prestashop>configure_5dd135d1bcfa7f63c3b7f25425c2a4a1'] = 'Score';
 $_MODULE['<{tec_facetlimit}prestashop>configure_f4c6f851b00d5518bf888815de279aba'] = 'Notes';
-$_MODULE['<{tec_facetlimit}prestashop>configure_5c0a7dc0964276bbee0efa24d2838588'] = 'Blocks alone — no real browser has used HTTP/1.0 since 1996.';
+$_MODULE['<{tec_facetlimit}prestashop>configure_63e72489ffeda572fbeb0ef21257f712'] = 'Blocks alone — no real browser has used HTTP/1.0 since 1996. Auto-disabled when a reverse-proxy header is detected (X-Forwarded-For, CF-Connecting-IP).';
 $_MODULE['<{tec_facetlimit}prestashop>configure_7b4fe692051a816f3968424db75d12c4'] = 'No User-Agent';
 $_MODULE['<{tec_facetlimit}prestashop>configure_09749c549dfac2fee1c5388afbb49ce5'] = 'Blocks alone — non-browser client.';
 $_MODULE['<{tec_facetlimit}prestashop>configure_63807e5c2e4bdcb3446579bffd05ae76'] = 'No PrestaShop-* cookie';

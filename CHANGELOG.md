@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.5] — 2026-04-21
+
+### Fixed
+- HTTP/1.0 signal auto-disabled behind reverse proxies (Nginx, Cloudflare, Plesk Apache+FPM): `SERVER_PROTOCOL` reflects the internal proxy-to-backend connection, not the real client protocol. Detection via `X-Forwarded-For`, `X-Real-IP`, `CF-Connecting-IP`.
+
+### Changed
+- Default bot score threshold raised from **3 to 4**: allows first-time visitors arriving via direct link (no cookie + no referer = score 3) to pass in normal operation. Switch to threshold 3 manually during an active attack.
+- Dropdown label updated: option 4 is now "Recommended · default", option 3 is "Recommended (attack mode)".
+
+### Added
+- HTML blocked page (`views/templates/front/blocked.tpl`) for direct browser requests: shows a friendly message with a back link to the category instead of raw JSON `{"error":"rate_limited"}`. AJAX requests still receive JSON (ps_facetedsearch compatible).
+- Translations for the blocked page in IT, DE, FR, ES.
+
+---
+
 ## [1.1.4] — 2026-04-21
 
 ### Fixed
