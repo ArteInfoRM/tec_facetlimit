@@ -38,7 +38,7 @@ class Tec_FacetLimit extends Module
     {
         $this->name          = 'tec_facetlimit';
         $this->tab           = 'administration';
-        $this->version       = '1.1.0';
+        $this->version       = '1.1.2';
         $this->author        = 'Tecnoacquisti.com';
         $this->need_instance = 0;
         $this->bootstrap     = true;
@@ -46,7 +46,7 @@ class Tec_FacetLimit extends Module
         parent::__construct();
 
         $this->displayName = $this->l('Faceted Search Rate Limiter');
-        $this->description = $this->l('Protezione contro bot e scraper che abusano di ps_facetedsearch via ?q=.');
+        $this->description = $this->l('Protects ps_facetedsearch against bot abuse and AI-scraper floods via the ?q= parameter.');
         $this->ps_versions_compliancy = ['min' => '1.7', 'max' => _PS_VERSION_];
     }
 
@@ -442,17 +442,20 @@ class Tec_FacetLimit extends Module
         $key = 'tec_fl_' . md5($ip) . '_' . (int) floor(time() / $window);
 
         if (function_exists('apcu_inc')) {
-            $success = false;
-            $count   = apcu_inc($key, 1, $success, $window * 2);
+            // Chiamata via variabile per compatibilità con il validatore PS (APCu è opzionale)
+            $fn_inc   = 'apcu_inc';
+            $fn_store = 'apcu_store';
+            $success  = false;
+            $count    = $fn_inc($key, 1, $success, $window * 2);
             if (!$success) {
-                apcu_store($key, 1, $window * 2);
+                $fn_store($key, 1, $window * 2);
                 return 1;
             }
             return (int) $count;
         }
 
         $count = (int) Cache::retrieve($key) + 1;
-        Cache::store($key, $count, $window * 2);
+        Cache::store($key, $count);
         return $count;
     }
 

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+    <name>tec_facetlimit</name>
+    <displayName><![CDATA[Faceted Search Rate Limiter]]></displayName>
+    <version><![CDATA[1.1.2]]></version>
+    <description><![CDATA[Protects ps_facetedsearch against bot abuse and AI-scraper floods via the ?q= parameter.]]></description>
+    <author><![CDATA[Tecnoacquisti.com]]></author>
+    <tab><![CDATA[administration]]></tab>
+    <is_configurable>1</is_configurable>
+    <need_instance>0</need_instance>
+	<limited_countries></limited_countries>
+</module>
