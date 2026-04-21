@@ -3,6 +3,27 @@
 ** @license One Paid Licence By WebSite Using This Module.
 *}
 
+{* ── Rate limiter backend status ────────────────────────────────────────── *}
+<div class="panel">
+    <div class="panel-heading">
+        <i class="icon icon-hdd"></i>
+        {l s='Rate limiter backend' mod='tec_facetlimit'}
+    </div>
+    <div class="panel-body">
+        {if $apcu_available}
+            <span class="label label-success" style="font-size:13px;padding:4px 10px;">
+                <i class="icon icon-check"></i> APCu
+            </span>
+            &nbsp;{l s='APCu — atomic shared-memory counter active.' mod='tec_facetlimit'}
+        {else}
+            <span class="label label-warning" style="font-size:13px;padding:4px 10px;">
+                <i class="icon icon-warning-sign"></i> PS Cache
+            </span>
+            &nbsp;{l s='APCu not available — using PS Cache fallback. Install the php-apcu extension for more reliable rate limiting.' mod='tec_facetlimit'}
+        {/if}
+    </div>
+</div>
+
 {* ── Bot scoring reference ───────────────────────────────────────────────── *}
 <div class="panel">
     <div class="panel-heading">

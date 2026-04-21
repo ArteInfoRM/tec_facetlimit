@@ -85,11 +85,12 @@ class Tec_FacetLimit extends Module
             . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
 
         $this->context->smarty->assign([
-            'current_ip'  => $this->getClientIp(),
-            'whitelist'   => (string) Configuration::get(self::CONF_WHITELIST),
-            'config_url'  => $configUrl,
-            'log_entries' => $this->getLogEntries(),
-            'log_size'    => $this->getLogSize(),
+            'current_ip'     => $this->getClientIp(),
+            'whitelist'      => (string) Configuration::get(self::CONF_WHITELIST),
+            'config_url'     => $configUrl,
+            'log_entries'    => $this->getLogEntries(),
+            'log_size'       => $this->getLogSize(),
+            'apcu_available' => function_exists('apcu_inc'),
         ]);
 
         $output .= $this->renderForm();
@@ -454,8 +455,15 @@ class Tec_FacetLimit extends Module
             return (int) $count;
         }
 
-        $count = (int) Cache::retrieve($key) + 1;
-        Cache::store($key, $count);
+        $now    = time();
+        $expiry = $now + $window * 2;
+        $cached = Cache::retrieve($key);
+        if (!is_array($cached) || $now > $cached[1]) {
+            $count = 1;
+        } else {
+            $count = $cached[0] + 1;
+        }
+        Cache::store($key, [$count, $expiry]);
         return $count;
     }
 
