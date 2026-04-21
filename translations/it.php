@@ -1,20 +1,9 @@
 <?php
-/**
- * 2009-2026 Tecnoacquisti.com — Italian translations
- *
- * @author    Arte e Informatica <helpdesk@tecnoacquisti.com>
- * @copyright 2009-2026 Tecnoacquisti.com
- * @license   One Paid Licence By WebSite Using This Module.
- */
 
 global $_MODULE;
-$_MODULE = [];
-
-// Module meta
+$_MODULE = array();
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_6c9fed73c672c6abedaa994eddcfb139'] = 'Faceted Search Rate Limiter';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_fc2f59de64f104909e39e1381919a3fe'] = 'Protegge ps_facetedsearch da abusi di bot e flood di scraper AI tramite il parametro ?q=.';
-
-// Settings form
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_f4f70727dc34561dfde1a3c529b6205c'] = 'Impostazioni';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_6fce8fb6b523579915341355dc4a54e8'] = 'Abilita protezione';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_93cba07454f06a4a960172bbd6e2a435'] = 'Sì';
@@ -27,14 +16,12 @@ $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_6181ff3e92854c039ce4c10d085
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_e9388dbf238b125415284c9215e2d7de'] = 'Blocca quando il punteggio combinato dei segnali raggiunge questo valore. Più alto = più permissivo. Punteggi: HTTP/1.0 +4, no User-Agent +3, no cookie PS +2, no Referer +1.';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_ac58cbc48768097eb71ee0b9ccd3324d'] = 'Molto aggressivo (qualsiasi segnale blocca)';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_42d2538d10b88d08d87bb7f5d97d675a'] = 'Aggressivo (solo no-cookie blocca)';
-$_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_d32f282b7d765ad213f50f3b47da1c32'] = 'Consigliato (HTTP/1.0, no-UA, no-cookie+no-referer)';
+$_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_d32f282b7d765ad213f50f3b47da1c32'] = 'Moderato (HTTP/1.0, no-UA, no-cookie+no-referer)';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_fb117c7b861e642e2dcd233d24724660'] = 'Consigliato · default (HTTP/1.0 o no-UA+no-referer)';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_8732ca6151769849628559901389aec3'] = 'Rigoroso (HTTP/1.0+no-referer o no-cookie+no-UA)';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_1312a626c238b6003536fc44b4fad1e2'] = 'Molto rigoroso (HTTP/1.0+no-cookie o tutti e tre i segnali soft)';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_3b55f8a0cc7da5d64d989b446f17c589'] = 'Massimo (HTTP/1.0+no-UA o HTTP/1.0+no-cookie+no-referer)';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_c9cc8cce247e49bae79f15173ce97354'] = 'Salva';
-
-// Validation messages
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_212060d866589691fb44b12dc518fd71'] = 'Le richieste massime devono essere comprese tra 1 e 10000.';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_0190eb13ed4ace65e3db8b9dda0c9bff'] = 'La finestra temporale deve essere compresa tra 1 e 3600 secondi.';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_7da715460b0cbb1641324c35bade6059'] = 'La soglia del punteggio bot deve essere compresa tra 1 e 7.';
@@ -42,14 +29,10 @@ $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_4d9ac946f92f7211e40671513c7
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_69242344e42d0b36296e7e1e18023684'] = 'Indirizzi IP non validi:';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_257d1f8c23bb6196950697134bfdfca7'] = 'Whitelist salvata.';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_7123634f50fb9fbbccf9f88f55e78091'] = 'File di log svuotato.';
-
-// blocked.tpl — front-end blocked page
 $_MODULE['<{tec_facetlimit}prestashop>blocked_eeb13468b73d93fa8bcbe3ebae6df720'] = 'Troppe richieste';
 $_MODULE['<{tec_facetlimit}prestashop>blocked_4867b3ffdfd5200f727d3adff107e908'] = 'Hai inviato troppe richieste di filtro in poco tempo. Attendi un momento prima di continuare la navigazione.';
 $_MODULE['<{tec_facetlimit}prestashop>blocked_0557fa923dcee4d0f86b1409f5c2167f'] = 'Torna alla pagina';
-
-// configure.tpl — scoring reference panel
-$_MODULE['<{tec_facetlimit}prestashop>configure_c50a9084860fdf47af6deee648281022'] = 'Backend rate limiter';
+$_MODULE['<{tec_facetlimit}prestashop>configure_c50a9084860fdf47af6deee648281022'] = 'Backend rate limiter (opzionale)';
 $_MODULE['<{tec_facetlimit}prestashop>configure_bd225428167fbb7076c17e6f5b6d287c'] = 'APCu — contatore atomico in memoria condivisa attivo.';
 $_MODULE['<{tec_facetlimit}prestashop>configure_13465598b6b6a6370a168e7f7a74c44e'] = 'APCu non disponibile — utilizzo del fallback PS Cache. Installa l\'estensione php-apcu per un rate limiting più affidabile.';
 $_MODULE['<{tec_facetlimit}prestashop>configure_c816a03ed27a1cea6346a954f4f4cda3'] = 'Riferimento punteggio bot';
@@ -64,8 +47,6 @@ $_MODULE['<{tec_facetlimit}prestashop>configure_14b53ff94f56f6b1afcd26bb1a98c03e
 $_MODULE['<{tec_facetlimit}prestashop>configure_743d14c7de2c27fa94db27793a7a7415'] = 'Referer assente';
 $_MODULE['<{tec_facetlimit}prestashop>configure_58c1051ca1e6921667fac4bf4537ae08'] = 'Il browser invia sempre il Referer nelle navigazioni e nelle chiamate AJAX same-origin.';
 $_MODULE['<{tec_facetlimit}prestashop>configure_e59df17c169a1fc4282ebaf244619506'] = 'Soglia default = 3: HTTP/1.0 da solo (4) o UA mancante da solo (3) bloccano immediatamente. No-cookie + no-referer (2+1=3) blocca anch\'esso. I visitatori alla prima visita con link diretto (solo no-cookie, punteggio 2) passano.';
-
-// configure.tpl — whitelist panel
 $_MODULE['<{tec_facetlimit}prestashop>configure_0524317c1d882d879ecce066c0765424'] = 'Whitelist IP';
 $_MODULE['<{tec_facetlimit}prestashop>configure_3e5891188683540a724db87cf0b346bc'] = 'IP in whitelist';
 $_MODULE['<{tec_facetlimit}prestashop>configure_14dc1e3d9f292c07e349da1a1d21da10'] = 'es. 203.0.113.1 o 2001:db8::1';
@@ -73,8 +54,6 @@ $_MODULE['<{tec_facetlimit}prestashop>configure_ec211f7c20af43e742bf2570c3cb84f9
 $_MODULE['<{tec_facetlimit}prestashop>configure_c770d8e0d1d1943ce239c64dbd6acc20'] = 'Aggiungi il mio IP';
 $_MODULE['<{tec_facetlimit}prestashop>configure_73737140d636c9d43e20024dab8f2cc3'] = 'Indirizzi IPv4 e IPv6. Gli IP in questa lista ignorano tutti i controlli di rate-limit e bot.';
 $_MODULE['<{tec_facetlimit}prestashop>configure_d83651a81af0cbb569c38b819dea1b4c'] = 'Salva whitelist';
-
-// configure.tpl — log panel
 $_MODULE['<{tec_facetlimit}prestashop>configure_8ed72d8592f2bb507e82b9c23632605f'] = 'Log richieste bloccate';
 $_MODULE['<{tec_facetlimit}prestashop>configure_2b6c2e165695b25f192dcd8b3c0ceada'] = 'Svuotare il file di log?';
 $_MODULE['<{tec_facetlimit}prestashop>configure_6bee5661e926f636f142c7f60a227116'] = 'Svuota log';
