@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.4] — 2026-04-21
+
+### Fixed
+- Rate limit fallback (no APCu): replaced unreliable `PS Cache` abstraction with a direct file counter in `var/cache/` using `flock` for atomicity. The PS Cache fallback was silently resetting the counter on every request, making rate limiting ineffective without APCu.
+
+---
+
 ## [1.1.3] — 2026-04-21
 
 ### Fixed

@@ -455,15 +455,18 @@ class Tec_FacetLimit extends Module
             return (int) $count;
         }
 
-        $now    = time();
-        $expiry = $now + $window * 2;
-        $cached = Cache::retrieve($key);
-        if (!is_array($cached) || $now > $cached[1]) {
-            $count = 1;
-        } else {
-            $count = $cached[0] + 1;
+        $file = _PS_ROOT_DIR_ . '/var/cache/tec_fl_' . md5($ip) . '_' . (int) floor(time() / $window) . '.cnt';
+        $fp   = @fopen($file, 'c+');
+        if (!$fp) {
+            return 1;
         }
-        Cache::store($key, [$count, $expiry]);
+        flock($fp, LOCK_EX);
+        $count = (int) fgets($fp) + 1;
+        ftruncate($fp, 0);
+        rewind($fp);
+        fwrite($fp, (string) $count);
+        flock($fp, LOCK_UN);
+        fclose($fp);
         return $count;
     }
 
