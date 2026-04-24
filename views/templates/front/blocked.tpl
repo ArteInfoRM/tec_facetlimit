@@ -1,3 +1,7 @@
+{*
+** 2009-2026 Tecnoacquisti.com
+** @license One Paid Licence By WebSite Using This Module.
+*}
 <!DOCTYPE html>
 <html lang="en">
 <head>

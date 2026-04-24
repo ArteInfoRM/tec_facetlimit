@@ -38,7 +38,7 @@ class Tec_FacetLimit extends Module
     {
         $this->name          = 'tec_facetlimit';
         $this->tab           = 'administration';
-        $this->version       = '1.1.6';
+        $this->version       = '1.1.7';
         $this->author        = 'Tecnoacquisti.com';
         $this->need_instance = 0;
         $this->bootstrap     = true;
@@ -235,6 +235,7 @@ class Tec_FacetLimit extends Module
         if (file_exists($logFile)) {
             file_put_contents($logFile, '');
         }
+        $this->cleanupCntFiles(0);
         return $this->displayConfirmation($this->l('Log file cleared.'));
     }
 
@@ -472,7 +473,27 @@ class Tec_FacetLimit extends Module
         fwrite($fp, (string) $count);
         flock($fp, LOCK_UN);
         fclose($fp);
+
+        // pulizia probabilistica: 1% delle richieste rimuove i file .cnt scaduti
+        if (random_int(1, 100) === 1) {
+            $this->cleanupCntFiles($window * 3);
+        }
+
         return $count;
+    }
+
+    /**
+     * Rimuove i file .cnt del rate limiter.
+     * $maxAge = 0 → elimina tutti; altrimenti solo quelli più vecchi di $maxAge secondi.
+     */
+    private function cleanupCntFiles(int $maxAge): void
+    {
+        $pattern = _PS_ROOT_DIR_ . '/var/cache/tec_fl_*.cnt';
+        foreach (glob($pattern) ?: [] as $file) {
+            if ($maxAge === 0 || (time() - (int) filemtime($file)) > $maxAge) {
+                @unlink($file);
+            }
+        }
     }
 
     // -------------------------------------------------------------------------

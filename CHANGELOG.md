@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.7] — 2026-04-21
+
+### Fixed
+- **`.cnt` file rotation** — rate-limit counter files in `var/cache/` were never deleted, accumulating indefinitely (one file per IP per time window). Probabilistic cleanup (1% of requests) now removes files older than `window × 3` seconds.
+- **`.cnt` files cleared on log reset** — clicking "Clear log" in the back-office now also deletes all active `.cnt` files, resetting rate-limit counters. Useful to restore normal access after an attack without restarting PHP.
+
+---
+
 ## [1.1.6] — 2026-04-21
 
 ### Fixed

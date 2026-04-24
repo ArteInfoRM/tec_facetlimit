@@ -30,7 +30,9 @@ Each HTTP signal contributes a score. The request is blocked when the total scor
 
 ### Layer 2 — Per-IP rate limiting (effective against aggressive single sources)
 
-Counts `?q=` requests per IP within a fixed window (default: 30 req / 60 s). Uses **APCu** atomic increment when available; falls back to PrestaShop's `Cache` abstraction (file / Memcache / Redis, depending on shop configuration).
+Counts `?q=` requests per IP within a fixed window (default: 30 req / 60 s). Uses **APCu** atomic increment when available; falls back to a file-based counter in `var/cache/` with `flock` for atomicity.
+
+Counter files (`tec_fl_*.cnt`) are automatically rotated: ~1% of requests trigger a cleanup pass that removes files older than `window × 3` seconds. All counter files are also deleted when the **Clear log** action is triggered from the back-office, which resets all rate-limit counters instantly — useful to restore normal access after an attack.
 
 ### Bonus — `?q=` parameter normalisation
 
