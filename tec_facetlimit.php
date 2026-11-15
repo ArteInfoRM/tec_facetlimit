@@ -4,9 +4,9 @@
  *
  * @author    Arte e Informatica <helpdesk@tecnoacquisti.com>
  * @copyright 2009-2026 Tecnoacquisti.com
+ * @version   1.1.8
  * @license   One Paid Licence By WebSite Using This Module.
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -38,7 +38,7 @@ class Tec_FacetLimit extends Module
     {
         $this->name          = 'tec_facetlimit';
         $this->tab           = 'administration';
-        $this->version       = '1.1.7';
+        $this->version       = '1.1.8';
         $this->author        = 'Tecnoacquisti.com';
         $this->need_instance = 0;
         $this->bootstrap     = true;
@@ -334,8 +334,7 @@ class Tec_FacetLimit extends Module
             return;
         }
 
-        // Solo frontend con parametro ?q=
-        if (!isset($_GET['q']) || ($params['controller_type'] ?? -1) !== Dispatcher::FC_FRONT) {
+        if (!$this->isFacetedSearchRequest($params)) {
             return;
         }
 
@@ -365,6 +364,123 @@ class Tec_FacetLimit extends Module
 
         // ── 3. Normalizza ?q= per massimizzare i cache hit di ps_facetedsearch ─
         $this->normalizeQParam();
+    }
+
+    /**
+     * Check whether the current request matches a ps_facetedsearch filter URL.
+     */
+    private function isFacetedSearchRequest(array $params): bool
+    {
+        if (($params['controller_type'] ?? -1) !== Dispatcher::FC_FRONT) {
+            return false;
+        }
+
+        if (!array_key_exists('q', $_GET) && !array_key_exists('q', $_POST)) {
+            return false;
+        }
+
+        if (Tools::getValue('fc') === 'module') {
+            return false;
+        }
+
+        $controllerName = $this->getRequestControllerName($params);
+        $allowedControllers = [
+            'category',
+            'manufacturer',
+            'supplier',
+            'pricesdrop',
+            'prices-drop',
+            'newproducts',
+            'new-products',
+            'bestsales',
+            'best-sales',
+        ];
+
+        if (!in_array($controllerName, $allowedControllers, true)) {
+            return false;
+        }
+
+        foreach ([$_GET, $_POST] as $input) {
+            if (array_key_exists('q', $input)
+                && (!is_string($input['q']) || strlen($input['q']) > 8192
+                    || !preg_match('//u', $input['q'])
+                    || preg_match('/[\x00-\x1F\x7F]/', $input['q']))) {
+                http_response_code(400);
+                header('Content-Type: text/plain; charset=utf-8');
+                header('Cache-Control: no-store');
+                exit('Invalid filter query.');
+            }
+        }
+
+        return isset($_GET['q']) && $this->isFacetedQValue(trim($_GET['q']));
+    }
+
+    /**
+     * Return the front controller name from dispatcher data or context fallback.
+     */
+    private function getRequestControllerName(array $params): string
+    {
+        $controller = $params['controller'] ?? null;
+
+        if (is_object($controller)) {
+            if (isset($controller->php_self) && $controller->php_self !== '') {
+                return strtolower((string) $controller->php_self);
+            }
+
+            if (isset($controller->controller_name) && $controller->controller_name !== '') {
+                return strtolower((string) $controller->controller_name);
+            }
+        }
+
+        if (is_string($controller) && $controller !== '') {
+            return strtolower($controller);
+        }
+
+        $controllerName = Tools::getValue('controller');
+        if (is_string($controllerName) && $controllerName !== '') {
+            return strtolower($controllerName);
+        }
+
+        if (isset($this->context->controller->php_self) && $this->context->controller->php_self !== '') {
+            return strtolower((string) $this->context->controller->php_self);
+        }
+
+        if (isset($this->context->controller->controller_name) && $this->context->controller->controller_name !== '') {
+            return strtolower((string) $this->context->controller->controller_name);
+        }
+
+        return '';
+    }
+
+    /**
+     * Validate the q value shape used by faceted filter tokens.
+     */
+    private function isFacetedQValue(string $q): bool
+    {
+        if ($q === '') {
+            return false;
+        }
+
+        $tokens = array_filter(explode('/', $q));
+        if (count($tokens) > 1) {
+            foreach ($tokens as $token) {
+                if (!$this->isFacetedQToken($token)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return $this->isFacetedQToken($q);
+    }
+
+    /**
+     * Validate a single faceted filter token.
+     */
+    private function isFacetedQToken(string $token): bool
+    {
+        return (bool) preg_match('/^[^\/=]+-[^\/=]+$/', trim($token));
     }
 
     // -------------------------------------------------------------------------

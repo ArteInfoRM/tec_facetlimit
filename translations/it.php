@@ -1,7 +1,7 @@
 <?php
 
 global $_MODULE;
-$_MODULE = array();
+$_MODULE = [];
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_6c9fed73c672c6abedaa994eddcfb139'] = 'Faceted Search Rate Limiter';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_fc2f59de64f104909e39e1381919a3fe'] = 'Protegge ps_facetedsearch da abusi di bot e flood di scraper AI tramite il parametro ?q=.';
 $_MODULE['<{tec_facetlimit}prestashop>tec_facetlimit_f4f70727dc34561dfde1a3c529b6205c'] = 'Impostazioni';

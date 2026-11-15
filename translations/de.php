@@ -6,7 +6,6 @@
  * @copyright 2009-2026 Tecnoacquisti.com
  * @license   One Paid Licence By WebSite Using This Module.
  */
-
 global $_MODULE;
 $_MODULE = [];
 

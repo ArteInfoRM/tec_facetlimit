@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.8] - 2026-11-15
+
+### Fixed
+
+- Reject structured, oversized or malformed filter queries before normalization, including POST-only and masked inputs. Apply faceted request protection only to supported listing routes.
+- Normalize module PHP formatting and release archive exclusions for validator compatibility.
+
 ## [1.1.7] — 2026-04-21
 
 ### Fixed

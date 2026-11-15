@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>tec_facetlimit - Changelog</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --text: #1f2933;
+            --muted: #5f6b7a;
+            --border: #d8dee6;
+            --panel: #f6f8fa;
+            --accent: #0b7285;
+        }
+        body {
+            margin: 0;
+            background: #fff;
+            color: var(--text);
+            font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+        }
+        main {
+            max-width: 1040px;
+            margin: 0 auto;
+            padding: 32px 24px 56px;
+        }
+        h1, h2, h3, h4 {
+            line-height: 1.25;
+            margin: 1.8em 0 .6em;
+        }
+        h1 {
+            margin-top: 0;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 2rem;
+        }
+        h2 {
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            font-size: 1.45rem;
+        }
+        h3 {
+            font-size: 1.18rem;
+        }
+        p {
+            margin: .7em 0;
+        }
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        blockquote {
+            margin: 1em 0;
+            padding: .7em 1em;
+            color: var(--muted);
+            border-left: 4px solid var(--border);
+            background: var(--panel);
+        }
+        code {
+            padding: .15em .35em;
+            border-radius: 4px;
+            background: var(--panel);
+            font-family: Consolas, Monaco, "Courier New", monospace;
+            font-size: .92em;
+        }
+        pre {
+            overflow: auto;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--panel);
+        }
+        pre code {
+            padding: 0;
+            background: transparent;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+        th, td {
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            vertical-align: top;
+        }
+        th {
+            background: var(--panel);
+            text-align: left;
+        }
+        ul, ol {
+            padding-left: 1.5em;
+        }
+        hr {
+            border: 0;
+            border-top: 1px solid var(--border);
+            margin: 2em 0;
+        }
+        .generated-note {
+            margin-bottom: 24px;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--panel);
+            color: var(--muted);
+            font-size: .92em;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <div class="generated-note">Generated from the Markdown source included with the module.</div>
+<h1>Changelog</h1>
+<p>All notable changes to <code>tec_facetlimit</code> are documented here. Format follows <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>.</p>
+<hr>
+<h2>[1.1.8] - 2026-11-15</h2>
+<h3>Fixed</h3>
+<ul>
+<li>Reject structured, oversized or malformed filter queries before normalization, including POST-only and masked inputs. Apply faceted request protection only to supported listing routes.</li>
+<li>Normalize module PHP formatting and release archive exclusions for validator compatibility.</li>
+</ul>
+<h2>[1.1.7] — 2026-04-21</h2>
+<h3>Fixed</h3>
+<ul>
+<li><strong><code>.cnt</code> file rotation</strong> — rate-limit counter files in <code>var/cache/</code> were never deleted, accumulating indefinitely (one file per IP per time window). Probabilistic cleanup (1% of requests) now removes files older than <code>window × 3</code> seconds.</li>
+<li><strong><code>.cnt</code> files cleared on log reset</strong> — clicking &quot;Clear log&quot; in the back-office now also deletes all active <code>.cnt</code> files, resetting rate-limit counters. Useful to restore normal access after an attack without restarting PHP.</li>
+</ul>
+<hr>
+<h2>[1.1.6] — 2026-04-21</h2>
+<h3>Fixed</h3>
+<ul>
+<li>Translation keys for IT, DE, FR, ES corrected to match PS-generated hashes (en.php regenerated via PS back-office). Manually computed MD5 keys differed from PS internal computation — translations were silently falling back to English on all non-EN shops.</li>
+<li>Module <code>$this-&gt;version</code> bumped to match actual release (was stuck at 1.1.2).</li>
+</ul>
+<hr>
+<h2>[1.1.5] — 2026-04-21</h2>
+<h3>Fixed</h3>
+<ul>
+<li>HTTP/1.0 signal auto-disabled behind reverse proxies (Nginx, Cloudflare, Plesk Apache+FPM): <code>SERVER_PROTOCOL</code> reflects the internal proxy-to-backend connection, not the real client protocol. Detection via <code>X-Forwarded-For</code>, <code>X-Real-IP</code>, <code>CF-Connecting-IP</code>.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li>Default bot score threshold raised from <strong>3 to 4</strong>: allows first-time visitors arriving via direct link (no cookie + no referer = score 3) to pass in normal operation. Switch to threshold 3 manually during an active attack.</li>
+<li>Dropdown label updated: option 4 is now &quot;Recommended · default&quot;, option 3 is &quot;Recommended (attack mode)&quot;.</li>
+</ul>
+<h3>Added</h3>
+<ul>
+<li>HTML blocked page (<code>views/templates/front/blocked.tpl</code>) for direct browser requests: shows a friendly message with a back link to the category instead of raw JSON <code>{&quot;error&quot;:&quot;rate_limited&quot;}</code>. AJAX requests still receive JSON (ps_facetedsearch compatible).</li>
+<li>Translations for the blocked page in IT, DE, FR, ES.</li>
+</ul>
+<hr>
+<h2>[1.1.4] — 2026-04-21</h2>
+<h3>Fixed</h3>
+<ul>
+<li>Rate limit fallback (no APCu): replaced unreliable <code>PS Cache</code> abstraction with a direct file counter in <code>var/cache/</code> using <code>flock</code> for atomicity. The PS Cache fallback was silently resetting the counter on every request, making rate limiting ineffective without APCu.</li>
+</ul>
+<hr>
+<h2>[1.1.3] — 2026-04-21</h2>
+<h3>Fixed</h3>
+<ul>
+<li>PS Cache fallback in <code>increment()</code>: stored <code>[count, expiry]</code> tuple to manage TTL internally, avoiding the <code>Cache::store()</code> with no TTL issue where CacheFs treated TTL=0 as immediate expiry, causing the counter to reset on every request.</li>
+</ul>
+<h3>Added</h3>
+<ul>
+<li>Back-office <strong>Rate limiter backend</strong> panel: shows a green <code>APCu</code> badge when the APCu extension is available, or a yellow <code>PS Cache</code> badge with an install hint otherwise.</li>
+<li>Translations for the new backend status strings in IT, DE, FR, ES.</li>
+</ul>
+<hr>
+<h2>[1.1.2] — 2026-04-21</h2>
+<h3>Fixed</h3>
+<ul>
+<li>Module description changed to English to pass PS validator language check.</li>
+<li>APCu calls (<code>apcu_inc</code>, <code>apcu_store</code>) wrapped via variable function names to avoid PS validator static-analysis false positives (extension functions flagged as non-existent).</li>
+<li><code>Cache::store()</code> called with 2 parameters only — TTL argument removed for compatibility with PS validator signature check.</li>
+<li>Added PHP doc comment to root <code>index.php</code> (PS validator &quot;missing file doc comment&quot; warning).</li>
+</ul>
+<hr>
+<h2>[1.1.1] — 2026-04-21</h2>
+<h3>Changed</h3>
+<ul>
+<li><strong>Bot score threshold</strong> input changed from a free-text field to a <code>select</code> dropdown with 7 labelled presets (1 = very aggressive → 7 = maximum strictness). Validation range tightened to 1–7.</li>
+<li>README: threshold presets table replaced with a full combination × threshold matrix (🚫/—) to make the <code>score ≥ threshold</code> logic immediately visible.</li>
+</ul>
+<hr>
+<h2>[1.1.0] — 2026-04-21</h2>
+<h3>Added</h3>
+<ul>
+<li><strong>Bot fingerprinting</strong> with configurable score threshold (default: 3), effective against distributed botnets where no single IP exceeds the rate-limit cap.</li>
+</ul>
+<p>  Scored signals: <code>HTTP/1.0</code> (+4), missing <code>User-Agent</code> (+3), no <code>PrestaShop-*</code> cookie (+2), missing <code>Referer</code> (+1).</p>
+<ul>
+<li><strong><code>?q=</code> parameter normalisation</strong>: filter tokens sorted alphabetically before <code>ps_facetedsearch</code> computes its MD5 cache key, collapsing permutation variants into the same cache entry and reducing cache misses.</li>
+<li><strong>Back-office configuration page</strong> with four panels:</li>
+<li><em>Settings</em> — enable switch, rate-limit, time window, bot score threshold.</li>
+<li><em>Bot scoring reference</em> — read-only table summarising signal weights and threshold logic.</li>
+<li><em>IP Whitelist</em> — chip-based UI with &quot;Add my IP&quot; shortcut.</li>
+<li><em>Blocked requests log</em> — last 100 entries (most recent first) with &quot;Clear log&quot; action.</li>
+<li><code>configure.tpl</code> Smarty template under <code>views/templates/admin/</code> — all back-office rendering separated from PHP logic.</li>
+<li><code>TEC_FL_BOT_SCORE</code> configuration key.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li>IP Whitelist moved from a plain <code>HelperForm</code> textarea to a dedicated chip-based panel (separate form, server-side IP validation).</li>
+</ul>
+<hr>
+<h2>[1.0.0] — 2026-04-21</h2>
+<h3>Added</h3>
+<ul>
+<li>Initial release.</li>
+<li>Hook on <code>actionDispatcherBefore</code>: intercepts every frontend request carrying <code>?q=</code> before controller dispatch.</li>
+<li><strong>Per-IP rate limiting</strong> using a fixed-window counter.</li>
+</ul>
+<p>  Backend: APCu atomic increment when available; falls back to PrestaShop <code>Cache</code> abstraction (file / Memcache / Redis).</p>
+<ul>
+<li>Configuration keys: <code>TEC_FL_ENABLED</code>, <code>TEC_FL_LIMIT</code>, <code>TEC_FL_WINDOW</code>, <code>TEC_FL_WHITELIST</code>.</li>
+<li>Blocked requests return <code>HTTP 429</code> with <code>Content-Type: application/json</code> and optional <code>Retry-After</code> header — compatible with <code>ps_facetedsearch</code> AJAX handler.</li>
+<li>Tab-separated append log at <code>var/logs/tec_facetlimit.log</code> (timestamp · type · IP · signals · URI · User-Agent).</li>
+<li>IP extracted via <code>Tools::getRemoteAddr()</code> — Cloudflare <code>CF-Connecting-IP</code> and <code>X-Forwarded-For</code> aware.</li>
+<li>Compatible with PS 1.7, PS 8.x, PS 9.x.</li>
+</ul>
+
+</main>
+</body>
+</html>
