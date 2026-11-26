@@ -8,7 +8,15 @@ Every unique `?q=` combination that misses the `ps_facetedsearch` block cache tr
 
 ## Solution
 
-Two independent defence layers, evaluated on every frontend request that carries `?q=`:
+### Shared shop and category limits
+
+Select a single shop in the back office. In **Shared filter limits**, enter the sustainable shop rate per minute. Choose **Add category limit**, select one or more categories by name, enter their rate and confirm. Review the category limits and choose **Save** to apply them. Every supported listing request with a non-empty filter query shares the shop budget, including AJAX calls. Each listed category also has its own budget. The IP whitelist applies before these checks.
+
+Choose **Observe** to simulate admission, then **Protect** to return HTTP 429 with a calculated Retry-After and Cache-Control: no-store. Existing installations start with this feature off. Each bucket refills continuously and can accumulate ten seconds of capacity (rounded up). A request consumes one token from each applicable budget only when both budgets admit it.
+
+The dashboard shows the current minute, peak minute and cumulative excess for each configured scope that received requests. Shop excess includes all rejected decisions, including category limits. Category excess includes decisions caused by either limit. Mode or rate changes start fresh statistics for each affected bucket on its next request. Aggregate decisions use one file lock per shop in the writable shop cache directory. Workers on independent filesystems enforce independent quotas. A storage failure allows the request to proceed.
+
+The existing bot and per-IP checks run after the shared limits:
 
 ### Layer 1 — Bot fingerprinting (effective against distributed botnets)
 
@@ -16,23 +24,15 @@ Each HTTP signal contributes a score. The request is blocked when the total scor
 
 | Signal | Score | Rationale |
 |--------|------:|-----------|
-| `HTTP/1.0` protocol | **4** | No real browser has used HTTP/1.0 since 1996 — blocks alone. **Auto-disabled** when a reverse-proxy header is detected (`X-Forwarded-For`, `X-Real-IP`, `CF-Connecting-IP`) — Nginx/Apache and Cloudflare setups use HTTP/1.0 internally. |
-| Missing `User-Agent` | **3** | Non-browser client — blocks alone |
-| No `PrestaShop-*` cookie | **2** | Real users always acquire the session cookie on first page view |
-| Missing `Referer` | **1** | Browsers always send `Referer` on navigation and same-origin AJAX |
-
-**Threshold logic (default = 4):**
-- `HTTP/1.0` alone → score 4 → **blocked**
-- Missing UA alone → score 3 → **passes** at T=4 (blocks at T=3)
-- No cookie + no Referer → score 3 → **passes** at T=4 (blocks at T=3 — use during active attacks)
-- No cookie only → score 2 → **passes**
-- No Referer only → score 1 → **passes**
+| Missing `User-Agent` | **3** | The request does not identify its client software. |
+| Missing `PrestaShop-*` cookie | **2** | A first-time visitor may have no shop cookie. |
+| Missing `Referer` | **1** | Direct links and browser privacy settings can omit this header. |
 
 ### Layer 2 — Per-IP rate limiting (effective against aggressive single sources)
 
 Counts `?q=` requests per IP within a fixed window (default: 30 req / 60 s). Uses **APCu** atomic increment when available; falls back to a file-based counter in `var/cache/` with `flock` for atomicity.
 
-Counter files (`tec_fl_*.cnt`) are automatically rotated: ~1% of requests trigger a cleanup pass that removes files older than `window × 3` seconds. All counter files are also deleted when the **Clear log** action is triggered from the back-office, which resets all rate-limit counters instantly — useful to restore normal access after an attack.
+The file backend reuses up to 256 shards per shop. Each shard rotates on first use in the next time window. Requests do not scan the cache directory. **Clear log** also clears file-backed IP counts and removes old counter files from earlier module versions.
 
 ### Bonus — `?q=` parameter normalisation
 
@@ -60,29 +60,12 @@ Navigate to **Modules → Faceted Search Rate Limiter → Configure**.
 | Enable protection | On | — | Master kill-switch |
 | Max requests per window | 30 | 1–10 000 | Per-IP `?q=` request cap |
 | Time window | 60 s | 1–3 600 | Window duration for the rate limiter |
-| Bot score threshold | 4 — Recommended · default | 1–7 | See presets table below |
+| Bot score threshold | 4 — Recommended · default | 1–6 | See examples below |
 | IP Whitelist | _(empty)_ | — | IPs exempt from all checks (IPv4 and IPv6) |
 
 ### Bot score threshold presets
 
-A request is blocked when its total score **≥ threshold**. A higher threshold means fewer blocked requests (more permissive). The default **4** allows first-time visitors with direct links to pass; switch to **3** during active attacks.
-
-| Combination | Score | T=1 | T=2 | T=3 | T=4 ★ | T=5 | T=6 | T=7 |
-|---|---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| No `Referer` only | 1 | 🚫 | — | — | — | — | — | — |
-| No cookie only | 2 | 🚫 | 🚫 | — | — | — | — | — |
-| No `User-Agent` only | 3 | 🚫 | 🚫 | 🚫 | — | — | — | — |
-| No cookie + no `Referer` | 3 | 🚫 | 🚫 | 🚫 | — | — | — | — |
-| `HTTP/1.0` only | 4 | 🚫 | 🚫 | 🚫 | 🚫 | — | — | — |
-| No `User-Agent` + no `Referer` | 4 | 🚫 | 🚫 | 🚫 | 🚫 | — | — | — |
-| No cookie + no `User-Agent` | 5 | 🚫 | 🚫 | 🚫 | 🚫 | 🚫 | — | — |
-| `HTTP/1.0` + no `Referer` | 5 | 🚫 | 🚫 | 🚫 | 🚫 | 🚫 | — | — |
-| `HTTP/1.0` + no cookie | 6 | 🚫 | 🚫 | 🚫 | 🚫 | 🚫 | 🚫 | — |
-| No cookie + no UA + no `Referer` | 6 | 🚫 | 🚫 | 🚫 | 🚫 | 🚫 | 🚫 | — |
-| `HTTP/1.0` + no `User-Agent` | 7 | 🚫 | 🚫 | 🚫 | 🚫 | 🚫 | 🚫 | 🚫 |
-| `HTTP/1.0` + no cookie + no `Referer` | 7 | 🚫 | 🚫 | 🚫 | 🚫 | 🚫 | 🚫 | 🚫 |
-
-🚫 = blocked · — = passes · ★ = default
+The module blocks a request when the sum reaches the configured threshold. At the default of **4**, a first-time visitor with a User-Agent opening a direct link scores 3 and passes this check. A request missing both User-Agent and Referer scores 4. At **3**, the first visit in the example also triggers a block. At **6**, all three signals must be missing. Existing thresholds from 1 through 6 retain their values. A previously saved threshold of 7 uses 6.
 
 ## Blocked response
 
@@ -135,7 +118,8 @@ tec_facetlimit/
 | `TEC_FL_ENABLED` | bool | `1` |
 | `TEC_FL_LIMIT` | int | `30` |
 | `TEC_FL_WINDOW` | int | `60` |
-| `TEC_FL_BOT_SCORE` | int | `3` |
+| `TEC_FL_BOT_SCORE` | int | `4` |
+| `TEC_FL_AGGREGATE` | JSON | Off, 150/min, no category overrides |
 | `TEC_FL_WHITELIST` | string | _(empty)_ |
 
 ## License

@@ -3,25 +3,175 @@
 ** @license One Paid Licence By WebSite Using This Module.
 *}
 
-{* ── Rate limiter backend status ────────────────────────────────────────── *}
+<style>
+    /* Override the fixed select width supplied by HelperForm. */
+    .bootstrap select#TEC_FL_BOT_SCORE.fixed-width-xl {
+        width: 100% !important;
+        max-width: 46rem;
+    }
+    #tec-fl-picker {
+        width: min(48rem, 95vw);
+        max-height: 90vh;
+        overflow: auto;
+        margin: auto;
+        padding: 0;
+        border: 1px solid #bbcdd2;
+        border-radius: 4px;
+    }
+    #tec-fl-picker::backdrop { background: rgba(0, 0, 0, .45); }
+    #tec-fl-picker .tec-fl-choices { max-height: 34vh; overflow: auto; padding: 8px; border: 1px solid #bbcdd2; }
+    #tec-fl-picker .tec-fl-tools { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+    #tec-fl-picker .tec-fl-tree { list-style: none; margin: 0; padding-left: 18px; }
+    #tec-fl-picker .tec-fl-choices > .tec-fl-tree { padding-left: 0; }
+    #tec-fl-picker .tec-fl-choice { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 4px; font-weight: normal; cursor: pointer; }
+    #tec-fl-picker .tec-fl-choice input { margin: 0; }
+    #tec-fl-picker .tec-fl-toggle { width: 24px; padding: 3px; }
+    #tec-fl-picker .tec-fl-leaf { margin-left: 24px; }
+    #tec-fl-picker [hidden] { display: none; }
+</style>
+
 <div class="panel">
     <div class="panel-heading">
-        <i class="icon icon-hdd"></i>
+        <i class="icon icon-sliders" aria-hidden="true"></i>
+        {l s='Shared filter limits' mod='tec_facetlimit'}
+    </div>
+    {if $single_shop}
+        <form class="form-horizontal" method="post" action="{$config_url|escape:'html':'UTF-8'}">
+            <div class="form-wrapper">
+                <div class="form-group">
+                    <label class="control-label col-lg-3" for="admission-mode">{l s='Mode' mod='tec_facetlimit'}</label>
+                    <div class="col-lg-4">
+                        <select class="form-control" id="admission-mode" name="admission_mode">
+                            <option value="off"{if $admission_settings.mode == 'off'} selected{/if}>{l s='Off' mod='tec_facetlimit'}</option>
+                            <option value="observe"{if $admission_settings.mode == 'observe'} selected{/if}>{l s='Observe' mod='tec_facetlimit'}</option>
+                            <option value="protect"{if $admission_settings.mode == 'protect'} selected{/if}>{l s='Protect' mod='tec_facetlimit'}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-lg-3" for="admission-shop">{l s='Shop limit' mod='tec_facetlimit'}</label>
+                    <div class="col-lg-4">
+                        <div class="input-group">
+                            <input class="form-control" type="number" id="admission-shop" name="admission_shop"
+                                   required min="1" max="9999" step="1" value="{$admission_settings.shop|intval}" aria-describedby="admission-unit">
+                            <span class="input-group-addon" id="admission-unit">{l s='requests/min' mod='tec_facetlimit'}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-lg-3" for="tec-fl-add">{l s='Category limits' mod='tec_facetlimit'}</label>
+                    <div class="col-lg-8" id="tec-fl-category-editor">
+                        <input type="hidden" name="admission_categories" value="{$admission_rules|escape:'html':'UTF-8'}">
+                        <table class="table" id="tec-fl-category-table" hidden>
+                            <thead><tr><th>{l s='Category' mod='tec_facetlimit'}</th><th>{l s='requests/min' mod='tec_facetlimit'}</th><th></th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                        <template id="tec-fl-rule-row">
+                            <tr><td></td><td></td><td class="text-right">
+                                <button type="button" class="btn btn-default btn-xs" data-action="edit">{l s='Edit' mod='tec_facetlimit'}</button>
+                                <button type="button" class="btn btn-default btn-xs" data-action="remove">{l s='Remove' mod='tec_facetlimit'}</button>
+                            </td></tr>
+                        </template>
+                        <button type="button" class="btn btn-default" id="tec-fl-add" aria-haspopup="dialog">
+                            <i class="icon icon-plus" aria-hidden="true"></i> {l s='Add category limit' mod='tec_facetlimit'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <button class="btn btn-default pull-right" type="submit" name="submitFacetAdmission">
+                    <i class="process-icon-save" aria-hidden="true"></i> {l s='Save' mod='tec_facetlimit'}
+                </button>
+            </div>
+        </form>
+        <dialog id="tec-fl-picker" aria-labelledby="tec-fl-picker-title">
+            <form>
+                <div class="modal-header">
+                    <h4 class="modal-title" id="tec-fl-picker-title">{l s='Set category limits' mod='tec_facetlimit'}</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="tec-fl-category-search">{l s='Search categories' mod='tec_facetlimit'}</label>
+                        <input id="tec-fl-category-search" class="form-control" type="search" autocomplete="off">
+                    </div>
+                    <div class="tec-fl-tools">
+                        <button class="btn btn-default btn-sm" type="button" data-tree-action="expand">{l s='Expand all' mod='tec_facetlimit'}</button>
+                        <button class="btn btn-default btn-sm" type="button" data-tree-action="collapse">{l s='Collapse all' mod='tec_facetlimit'}</button>
+                        <button class="btn btn-default btn-sm" type="button" data-tree-action="select">{l s='Select all matches' mod='tec_facetlimit'}</button>
+                        <button class="btn btn-default btn-sm" type="button" data-tree-action="clear">{l s='Clear selection' mod='tec_facetlimit'}</button>
+                    </div>
+                    <div class="tec-fl-choices form-group" role="group" aria-label="{l s='Categories' mod='tec_facetlimit'}">
+                        {include file='./category-tree.tpl' nodes=$category_tree}
+                    </div>
+                    <p id="tec-fl-no-matches" hidden>{l s='No matching categories.' mod='tec_facetlimit'}</p>
+                    <div class="form-group">
+                        <label for="tec-fl-category-rate">{l s='Limit per minute' mod='tec_facetlimit'}</label>
+                        <input id="tec-fl-category-rate" class="form-control fixed-width-md" type="number" required min="1" max="9999" step="1">
+                    </div>
+                    <p class="alert alert-warning" id="tec-fl-limit-error" role="alert" hidden>{l s='Select up to 64 categories in total.' mod='tec_facetlimit'}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" id="tec-fl-cancel">{l s='Cancel' mod='tec_facetlimit'}</button>
+                    <button type="submit" class="btn btn-primary" id="tec-fl-confirm" disabled>{l s='Confirm' mod='tec_facetlimit'}</button>
+                </div>
+            </form>
+        </dialog>
+        <script src="{$picker_script|escape:'html':'UTF-8'}"></script>
+    {else}
+        <p class="alert alert-info">{l s='Select a single shop to configure shared limits.' mod='tec_facetlimit'}</p>
+    {/if}
+</div>
+
+{if $single_shop && $admission_stats}
+    <div class="panel">
+        <div class="panel-heading">
+            <i class="icon icon-bar-chart" aria-hidden="true"></i>
+            {l s='Filter traffic' mod='tec_facetlimit'}
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">{l s='Scope' mod='tec_facetlimit'}</th>
+                        <th scope="col">{l s='Last mode' mod='tec_facetlimit'}</th>
+                        <th scope="col" class="text-right">{l s='This minute' mod='tec_facetlimit'}</th>
+                        <th scope="col" class="text-right">{l s='Peak per minute' mod='tec_facetlimit'}</th>
+                        <th scope="col" class="text-right">{l s='Over quota (total)' mod='tec_facetlimit'}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {foreach $admission_stats as $id => $stat}
+                        <tr>
+                            <td>{if $id == 0}{l s='Shop' mod='tec_facetlimit'}{elseif isset($category_names[$id])}{$category_names[$id]|escape:'html':'UTF-8'}{else}{l s='Category' mod='tec_facetlimit'} #{$id|intval}{/if}</td>
+                            <td>{if $stat.mode == 'protect'}{l s='Protect' mod='tec_facetlimit'}{else}{l s='Observe' mod='tec_facetlimit'}{/if}</td>
+                            <td class="text-right">{if $stat.minute == $current_minute}{$stat.requests|intval}{else}0{/if}</td>
+                            <td class="text-right">{$stat.peak|intval}</td>
+                            <td class="text-right">{$stat.excess|intval}</td>
+                        </tr>
+                    {/foreach}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{/if}
+
+<div class="panel">
+    <div class="panel-heading">
+        <i class="icon icon-hdd" aria-hidden="true"></i>
         {l s='Rate limiter backend' mod='tec_facetlimit'}
     </div>
-    <div class="panel-body">
+    <p>
+        {l s='Per-IP counters' mod='tec_facetlimit'}
         {if $apcu_available}
-            <span class="label label-success" style="font-size:13px;padding:4px 10px;">
-                <i class="icon icon-check"></i> APCu
-            </span>
-            &nbsp;{l s='APCu — atomic shared-memory counter active.' mod='tec_facetlimit'}
+            <span class="label label-success">APCu</span>
         {else}
-            <span class="label label-warning" style="font-size:13px;padding:4px 10px;">
-                <i class="icon icon-warning-sign"></i> PS Cache
-            </span>
-            &nbsp;{l s='APCu not available — using PS Cache fallback. Install the php-apcu extension for more reliable rate limiting.' mod='tec_facetlimit'}
+            <span class="label label-default">{l s='Files' mod='tec_facetlimit'}</span>
         {/if}
-    </div>
+    </p>
+    {if !$apcu_available}
+        <p class="help-block">{l s='Ask your hosting provider to enable APCu so per-IP counters can use shared memory.' mod='tec_facetlimit'}</p>
+    {/if}
+    <p class="help-block">{l s='Shop and category quotas use files.' mod='tec_facetlimit'}</p>
 </div>
 
 {* ── Bot scoring reference ───────────────────────────────────────────────── *}
@@ -36,34 +186,25 @@
                 <tr>
                     <th>{l s='Signal' mod='tec_facetlimit'}</th>
                     <th>{l s='Score' mod='tec_facetlimit'}</th>
-                    <th>{l s='Notes' mod='tec_facetlimit'}</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td><code>HTTP/1.0</code></td>
-                    <td><strong>4</strong></td>
-                    <td>{l s='Blocks alone — no real browser has used HTTP/1.0 since 1996. Auto-disabled when a reverse-proxy header is detected (X-Forwarded-For, CF-Connecting-IP).' mod='tec_facetlimit'}</td>
-                </tr>
-                <tr>
                     <td>{l s='No User-Agent' mod='tec_facetlimit'}</td>
                     <td><strong>3</strong></td>
-                    <td>{l s='Blocks alone — non-browser client.' mod='tec_facetlimit'}</td>
                 </tr>
                 <tr>
                     <td>{l s='No PrestaShop-* cookie' mod='tec_facetlimit'}</td>
                     <td><strong>2</strong></td>
-                    <td>{l s='Real users always acquire the session cookie on first page view.' mod='tec_facetlimit'}</td>
                 </tr>
                 <tr>
                     <td>{l s='No Referer' mod='tec_facetlimit'}</td>
                     <td><strong>1</strong></td>
-                    <td>{l s='Browsers always send Referer on navigation and same-origin AJAX.' mod='tec_facetlimit'}</td>
                 </tr>
             </tbody>
         </table>
         <p class="help-block">
-            {l s='Default threshold = 3: HTTP/1.0 alone (4) or missing UA alone (3) block immediately. No-cookie + no-referer (2+1=3) also blocks. First-time visitors with a direct link (no-cookie only, score 2) pass through.' mod='tec_facetlimit'}
+            {l s='A first visit from a direct link can score 3 points when both the cookie and the referrer are missing.' mod='tec_facetlimit'}
         </p>
     </div>
 </div>

@@ -116,6 +116,15 @@
 <h1>Changelog</h1>
 <p>All notable changes to <code>tec_facetlimit</code> are documented here. Format follows <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>.</p>
 <hr>
+<h2>[1.2.0] - 2026-11-26</h2>
+<ul>
+<li>Select categories by name or branch in the shared limit editor.</li>
+<li>Recognize the full PrestaShop cookie prefix so an existing shop cookie does not add two points.</li>
+<li>Score missing User-Agent, shop cookie and Referer on a scale of 0 to 6. Keep the default threshold at 4 and interpret a previously stored threshold of 7 as 6.</li>
+<li>Add per-shop and configurable category quotas with continuous refill, observation mode and back-office counters.</li>
+<li>Partition file-backed IP counters by shop and shard. Rotate them on access and remove directory scans from storefront requests.</li>
+<li>Send non-cacheable 429 responses for rate-limited requests.</li>
+</ul>
 <h2>[1.1.8] - 2026-11-15</h2>
 <h3>Fixed</h3>
 <ul>
@@ -139,7 +148,7 @@
 <h2>[1.1.5] — 2026-04-21</h2>
 <h3>Fixed</h3>
 <ul>
-<li>HTTP/1.0 signal auto-disabled behind reverse proxies (Nginx, Cloudflare, Plesk Apache+FPM): <code>SERVER_PROTOCOL</code> reflects the internal proxy-to-backend connection, not the real client protocol. Detection via <code>X-Forwarded-For</code>, <code>X-Real-IP</code>, <code>CF-Connecting-IP</code>.</li>
+<li>Correct bot scoring behind reverse proxies.</li>
 </ul>
 <h3>Changed</h3>
 <ul>
@@ -189,9 +198,6 @@
 <h3>Added</h3>
 <ul>
 <li><strong>Bot fingerprinting</strong> with configurable score threshold (default: 3), effective against distributed botnets where no single IP exceeds the rate-limit cap.</li>
-</ul>
-<p>  Scored signals: <code>HTTP/1.0</code> (+4), missing <code>User-Agent</code> (+3), no <code>PrestaShop-*</code> cookie (+2), missing <code>Referer</code> (+1).</p>
-<ul>
 <li><strong><code>?q=</code> parameter normalisation</strong>: filter tokens sorted alphabetically before <code>ps_facetedsearch</code> computes its MD5 cache key, collapsing permutation variants into the same cache entry and reducing cache misses.</li>
 <li><strong>Back-office configuration page</strong> with four panels:</li>
 <li><em>Settings</em> — enable switch, rate-limit, time window, bot score threshold.</li>

@@ -118,21 +118,17 @@
 <h2>Problem</h2>
 <p>Every unique <code>?q=</code> combination that misses the <code>ps_facetedsearch</code> block cache triggers a full database query chain across <code>ps_product</code>, <code>ps_layered_price_index</code>, and related tables. Distributed botnets and AI training crawlers generate millions of unique parameter combinations in a matter of days, saturating CPU without any single IP exceeding a reasonable threshold.</p>
 <h2>Solution</h2>
-<p>Two independent defence layers, evaluated on every frontend request that carries <code>?q=</code>:</p>
+<h3>Shared shop and category limits</h3>
+<p>Select a single shop in the back office. In <strong>Shared filter limits</strong>, enter the sustainable shop rate per minute. Choose <strong>Add category limit</strong>, select one or more categories by name, enter their rate and confirm. Review the category limits and choose <strong>Save</strong> to apply them. Every supported listing request with a non-empty filter query shares the shop budget, including AJAX calls. Each listed category also has its own budget. The IP whitelist applies before these checks.</p>
+<p>Choose <strong>Observe</strong> to simulate admission, then <strong>Protect</strong> to return HTTP 429 with a calculated Retry-After and Cache-Control: no-store. Existing installations start with this feature off. Each bucket refills continuously and can accumulate ten seconds of capacity (rounded up). A request consumes one token from each applicable budget only when both budgets admit it.</p>
+<p>The dashboard shows the current minute, peak minute and cumulative excess for each configured scope that received requests. Shop excess includes all rejected decisions, including category limits. Category excess includes decisions caused by either limit. Mode or rate changes start fresh statistics for each affected bucket on its next request. Aggregate decisions use one file lock per shop in the writable shop cache directory. Workers on independent filesystems enforce independent quotas. A storage failure allows the request to proceed.</p>
+<p>The existing bot and per-IP checks run after the shared limits:</p>
 <h3>Layer 1 — Bot fingerprinting (effective against distributed botnets)</h3>
 <p>Each HTTP signal contributes a score. The request is blocked when the total score reaches the configured threshold (default: <strong>4</strong>).</p>
-<table><thead><tr><th>Signal</th><th>Score</th><th>Rationale</th></tr></thead><tbody><tr><td><code>HTTP/1.0</code> protocol</td><td><strong>4</strong></td><td>No real browser has used HTTP/1.0 since 1996 — blocks alone. <strong>Auto-disabled</strong> when a reverse-proxy header is detected (<code>X-Forwarded-For</code>, <code>X-Real-IP</code>, <code>CF-Connecting-IP</code>) — Nginx/Apache and Cloudflare setups use HTTP/1.0 internally.</td></tr><tr><td>Missing <code>User-Agent</code></td><td><strong>3</strong></td><td>Non-browser client — blocks alone</td></tr><tr><td>No <code>PrestaShop-*</code> cookie</td><td><strong>2</strong></td><td>Real users always acquire the session cookie on first page view</td></tr><tr><td>Missing <code>Referer</code></td><td><strong>1</strong></td><td>Browsers always send <code>Referer</code> on navigation and same-origin AJAX</td></tr></tbody></table>
-<p><strong>Threshold logic (default = 4):</strong></p>
-<ul>
-<li><code>HTTP/1.0</code> alone → score 4 → <strong>blocked</strong></li>
-<li>Missing UA alone → score 3 → <strong>passes</strong> at T=4 (blocks at T=3)</li>
-<li>No cookie + no Referer → score 3 → <strong>passes</strong> at T=4 (blocks at T=3 — use during active attacks)</li>
-<li>No cookie only → score 2 → <strong>passes</strong></li>
-<li>No Referer only → score 1 → <strong>passes</strong></li>
-</ul>
+<table><thead><tr><th>Signal</th><th>Score</th><th>Rationale</th></tr></thead><tbody><tr><td>Missing <code>User-Agent</code></td><td><strong>3</strong></td><td>The request does not identify its client software.</td></tr><tr><td>Missing <code>PrestaShop-*</code> cookie</td><td><strong>2</strong></td><td>A first-time visitor may have no shop cookie.</td></tr><tr><td>Missing <code>Referer</code></td><td><strong>1</strong></td><td>Direct links and browser privacy settings can omit this header.</td></tr></tbody></table>
 <h3>Layer 2 — Per-IP rate limiting (effective against aggressive single sources)</h3>
 <p>Counts <code>?q=</code> requests per IP within a fixed window (default: 30 req / 60 s). Uses <strong>APCu</strong> atomic increment when available; falls back to a file-based counter in <code>var/cache/</code> with <code>flock</code> for atomicity.</p>
-<p>Counter files (<code>tec_fl_*.cnt</code>) are automatically rotated: ~1% of requests trigger a cleanup pass that removes files older than <code>window × 3</code> seconds. All counter files are also deleted when the <strong>Clear log</strong> action is triggered from the back-office, which resets all rate-limit counters instantly — useful to restore normal access after an attack.</p>
+<p>The file backend reuses up to 256 shards per shop. Each shard rotates on first use in the next time window. Requests do not scan the cache directory. <strong>Clear log</strong> also clears file-backed IP counts and removes old counter files from earlier module versions.</p>
 <h3>Bonus — <code>?q=</code> parameter normalisation</h3>
 <p>Filter tokens inside <code>?q=</code> are sorted alphabetically before <code>ps_facetedsearch</code> computes its MD5 cache key. This collapses permutation variants (<code>Brand-Nike/Color-Red</code> and <code>Color-Red/Brand-Nike</code>) into the same cache entry, significantly reducing cache misses caused by enumeration attacks.</p>
 <h2>Requirements</h2>
@@ -144,11 +140,9 @@
 </ol>
 <h2>Configuration</h2>
 <p>Navigate to <strong>Modules → Faceted Search Rate Limiter → Configure</strong>.</p>
-<table><thead><tr><th>Setting</th><th>Default</th><th>Range</th><th>Description</th></tr></thead><tbody><tr><td>Enable protection</td><td>On</td><td>—</td><td>Master kill-switch</td></tr><tr><td>Max requests per window</td><td>30</td><td>1–10 000</td><td>Per-IP <code>?q=</code> request cap</td></tr><tr><td>Time window</td><td>60 s</td><td>1–3 600</td><td>Window duration for the rate limiter</td></tr><tr><td>Bot score threshold</td><td>4 — Recommended · default</td><td>1–7</td><td>See presets table below</td></tr><tr><td>IP Whitelist</td><td>_(empty)_</td><td>—</td><td>IPs exempt from all checks (IPv4 and IPv6)</td></tr></tbody></table>
+<table><thead><tr><th>Setting</th><th>Default</th><th>Range</th><th>Description</th></tr></thead><tbody><tr><td>Enable protection</td><td>On</td><td>—</td><td>Master kill-switch</td></tr><tr><td>Max requests per window</td><td>30</td><td>1–10 000</td><td>Per-IP <code>?q=</code> request cap</td></tr><tr><td>Time window</td><td>60 s</td><td>1–3 600</td><td>Window duration for the rate limiter</td></tr><tr><td>Bot score threshold</td><td>4 — Recommended · default</td><td>1–6</td><td>See examples below</td></tr><tr><td>IP Whitelist</td><td>_(empty)_</td><td>—</td><td>IPs exempt from all checks (IPv4 and IPv6)</td></tr></tbody></table>
 <h3>Bot score threshold presets</h3>
-<p>A request is blocked when its total score <strong>≥ threshold</strong>. A higher threshold means fewer blocked requests (more permissive). The default <strong>4</strong> allows first-time visitors with direct links to pass; switch to <strong>3</strong> during active attacks.</p>
-<p></p>
-<p></p>
+<p>The module blocks a request when the sum reaches the configured threshold. At the default of <strong>4</strong>, a first-time visitor with a User-Agent opening a direct link scores 3 and passes this check. A request missing both User-Agent and Referer scores 4. At <strong>3</strong>, the first visit in the example also triggers a block. At <strong>6</strong>, all three signals must be missing. Existing thresholds from 1 through 6 retain their values. A previously saved threshold of 7 uses 6.</p>
 <h2>Blocked response</h2>
 <p><strong>AJAX requests</strong> (ps_facetedsearch filter calls):</p>
 <pre><code>HTTP/1.1 429 Too Many Requests
@@ -177,7 +171,7 @@ Retry-After: &lt;window_seconds&gt;   (rate-limit blocks only)
             ├── index.php
             └── configure.tpl           Back-office configuration page</code></pre>
 <h2>Configuration keys</h2>
-<table><thead><tr><th>Key</th><th>Type</th><th>Default</th></tr></thead><tbody><tr><td><code>TEC_FL_ENABLED</code></td><td>bool</td><td><code>1</code></td></tr><tr><td><code>TEC_FL_LIMIT</code></td><td>int</td><td><code>30</code></td></tr><tr><td><code>TEC_FL_WINDOW</code></td><td>int</td><td><code>60</code></td></tr><tr><td><code>TEC_FL_BOT_SCORE</code></td><td>int</td><td><code>3</code></td></tr><tr><td><code>TEC_FL_WHITELIST</code></td><td>string</td><td>_(empty)_</td></tr></tbody></table>
+<table><thead><tr><th>Key</th><th>Type</th><th>Default</th></tr></thead><tbody><tr><td><code>TEC_FL_ENABLED</code></td><td>bool</td><td><code>1</code></td></tr><tr><td><code>TEC_FL_LIMIT</code></td><td>int</td><td><code>30</code></td></tr><tr><td><code>TEC_FL_WINDOW</code></td><td>int</td><td><code>60</code></td></tr><tr><td><code>TEC_FL_BOT_SCORE</code></td><td>int</td><td><code>4</code></td></tr><tr><td><code>TEC_FL_AGGREGATE</code></td><td>JSON</td><td>Off, 150/min, no category overrides</td></tr><tr><td><code>TEC_FL_WHITELIST</code></td><td>string</td><td>_(empty)_</td></tr></tbody></table>
 <h2>License</h2>
 <p>One paid licence per website using this module. No rental, resale, or redistribution. © 2009–2026 Tecnoacquisti.com — Arte e Informatica &lt;helpdesk@tecnoacquisti.com&gt;</p>
 

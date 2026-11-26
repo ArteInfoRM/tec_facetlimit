@@ -21,7 +21,7 @@
 .gitignore export-ignore
 .gitattributes export-ignore
 .editorconfig export-ignore
-/tests/ export-ignore
+/tests export-ignore
 /.github/ export-ignore
 /phpunit.xml.dist export-ignore
 /build.sh export-ignore
@@ -30,7 +30,7 @@
 /config_it.xml  export-ignore
 
 config*.xml export-ignore
-/dist/ export-ignore
+/dist export-ignore
 /sbom.cdx.json export-ignore
 /AGENTS.md export-ignore
 /CLAUDE.md export-ignore

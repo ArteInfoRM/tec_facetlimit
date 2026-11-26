@@ -4,12 +4,14 @@
  *
  * @author    Arte e Informatica <helpdesk@tecnoacquisti.com>
  * @copyright 2009-2026 Tecnoacquisti.com
- * @version   1.1.8
+ * @version   1.2.0
  * @license   One Paid Licence By WebSite Using This Module.
  */
 if (!defined('_PS_VERSION_')) {
     exit;
 }
+
+require_once __DIR__ . '/FacetLimitCounters.php';
 
 class Tec_FacetLimit extends Module
 {
@@ -18,27 +20,22 @@ class Tec_FacetLimit extends Module
     const CONF_WHITELIST  = 'TEC_FL_WHITELIST';
     const CONF_ENABLED    = 'TEC_FL_ENABLED';
     const CONF_BOT_SCORE  = 'TEC_FL_BOT_SCORE';
+    const CONF_AGGREGATE = 'TEC_FL_AGGREGATE';
     const LOG_FILE        = 'tec_facetlimit.log';
 
     const DEFAULT_LIMIT      = 30;   // max richieste ?q= per finestra per IP
     const DEFAULT_WINDOW     = 60;   // finestra in secondi
     const DEFAULT_BOT_SCORE  = 4;    // soglia punteggio bot oltre la quale si blocca
 
-    // ── Punteggi fingerprinting bot ──────────────────────────────────────────
-    // HTTP/1.0: quasi nessun browser reale usa ancora questo protocollo
-    const SCORE_HTTP10        = 4;
-    // Assenza del cookie PrestaShop-*: i bot di solito non gestiscono cookie
     const SCORE_NO_PS_COOKIE  = 2;
-    // Assenza di Referer: su chiamate AJAX il browser lo manda sempre (same-origin)
     const SCORE_NO_REFERER    = 1;
-    // Assenza completa di User-Agent: client non-browser
     const SCORE_NO_UA         = 3;
 
     public function __construct()
     {
         $this->name          = 'tec_facetlimit';
         $this->tab           = 'administration';
-        $this->version       = '1.1.8';
+        $this->version       = '1.2.0';
         $this->author        = 'Tecnoacquisti.com';
         $this->need_instance = 0;
         $this->bootstrap     = true;
@@ -75,6 +72,8 @@ class Tec_FacetLimit extends Module
 
         if (Tools::isSubmit('submitTecFacetLimitModule')) {
             $output .= $this->postProcess();
+        } elseif (Tools::isSubmit('submitFacetAdmission')) {
+            $output .= $this->saveAdmission();
         } elseif (Tools::isSubmit('submitTecFacetLimitWhitelist')) {
             $output .= $this->handleWhitelistSave();
         } elseif (Tools::isSubmit('tec_fl_clear_log')) {
@@ -84,13 +83,33 @@ class Tec_FacetLimit extends Module
         $configUrl = $this->context->link->getAdminLink('AdminModules', true)
             . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
 
+        $settings = $this->admissionSettings();
+        $rules = [];
+        foreach ($settings['categories'] as $id => $rate) {
+            $rules[] = $id . '=' . $rate;
+        }
+        $singleShop = Shop::getContext() === Shop::CONTEXT_SHOP || !Shop::isFeatureActive();
+        $tree = [];
+        $categoryNames = [];
+        if ($singleShop) {
+            $tree = Category::getNestedCategories((int) $this->context->shop->id_category, (int) $this->context->language->id, false);
+            $this->collectCategoryNames($tree, '', $categoryNames);
+        }
         $this->context->smarty->assign([
+            'category_tree' => $tree,
+            'category_names' => $categoryNames,
+            'picker_script' => $this->_path . 'views/js/category-limits.js',
+            'admission_settings' => $settings,
+            'admission_rules' => implode(',', $rules),
+            'admission_stats' => $this->counters()->snapshot(),
+            'current_minute' => (int) floor(time() / 60),
+            'single_shop' => $singleShop,
             'current_ip'     => $this->getClientIp(),
             'whitelist'      => (string) Configuration::get(self::CONF_WHITELIST),
             'config_url'     => $configUrl,
             'log_entries'    => $this->getLogEntries(),
             'log_size'       => $this->getLogSize(),
-            'apcu_available' => function_exists('apcu_inc'),
+            'apcu_available' => $this->hasApcu(),
         ]);
 
         $output .= $this->renderForm();
@@ -154,16 +173,15 @@ class Tec_FacetLimit extends Module
                         'type'    => 'select',
                         'label'   => $this->l('Bot score threshold'),
                         'name'    => self::CONF_BOT_SCORE,
-                        'desc'    => $this->l('Block when the combined signal score reaches this value. Higher = more permissive. Scores: HTTP/1.0 +4, no User-Agent +3, no PS cookie +2, no Referer +1.'),
+                        'desc'    => $this->l('A request is blocked when its score reaches the threshold. Higher values allow more requests. Default: 4.'),
                         'options' => [
                             'query' => [
-                                ['id' => 1, 'name' => '1 — ' . $this->l('Very aggressive (any signal blocks)')],
-                                ['id' => 2, 'name' => '2 — ' . $this->l('Aggressive (no-cookie alone blocks)')],
-                                ['id' => 3, 'name' => '3 — ' . $this->l('Recommended (HTTP/1.0, no-UA, no-cookie+no-referer)')],
-                                ['id' => 4, 'name' => '4 — ' . $this->l('Recommended · default (HTTP/1.0 or no-UA+no-referer)')],
-                                ['id' => 5, 'name' => '5 — ' . $this->l('Strict (HTTP/1.0+no-referer or no-cookie+no-UA)')],
-                                ['id' => 6, 'name' => '6 — ' . $this->l('Very strict (HTTP/1.0+no-cookie or all three soft signals)')],
-                                ['id' => 7, 'name' => '7 — ' . $this->l('Maximum (HTTP/1.0+no-UA or HTTP/1.0+no-cookie+no-referer)')],
+                                ['id' => 1, 'name' => '1 - ' . $this->l('Any one signal is missing')],
+                                ['id' => 2, 'name' => '2 - ' . $this->l('Missing shop cookie or User-Agent')],
+                                ['id' => 3, 'name' => '3 - ' . $this->l('Missing User-Agent, or both cookie and Referer')],
+                                ['id' => 4, 'name' => '4 - ' . $this->l('Default: missing User-Agent plus cookie or Referer')],
+                                ['id' => 5, 'name' => '5 - ' . $this->l('Both User-Agent and shop cookie are missing')],
+                                ['id' => 6, 'name' => '6 - ' . $this->l('All three signals are missing')],
                             ],
                             'id'   => 'id',
                             'name' => 'name',
@@ -181,7 +199,7 @@ class Tec_FacetLimit extends Module
             self::CONF_ENABLED   => (int) Configuration::get(self::CONF_ENABLED),
             self::CONF_LIMIT     => (int) (Configuration::get(self::CONF_LIMIT)     ?: self::DEFAULT_LIMIT),
             self::CONF_WINDOW    => (int) (Configuration::get(self::CONF_WINDOW)    ?: self::DEFAULT_WINDOW),
-            self::CONF_BOT_SCORE => (int) (Configuration::get(self::CONF_BOT_SCORE) ?: self::DEFAULT_BOT_SCORE),
+            self::CONF_BOT_SCORE => $this->getBotScoreThreshold(),
         ];
     }
 
@@ -197,17 +215,79 @@ class Tec_FacetLimit extends Module
             return $this->displayError($this->l('Time window must be between 1 and 3600 seconds.'));
         }
 
-        $botScore = (int) Tools::getValue(self::CONF_BOT_SCORE);
-        if ($botScore < 1 || $botScore > 7) {
-            return $this->displayError($this->l('Bot score threshold must be between 1 and 7.'));
+        $botScore = Tools::getValue(self::CONF_BOT_SCORE);
+        if (!is_string($botScore) || !preg_match('/^[1-6]$/D', $botScore)) {
+            return $this->displayError($this->l('Bot score threshold must be between 1 and 6.'));
         }
 
         Configuration::updateValue(self::CONF_ENABLED,   (int) Tools::getValue(self::CONF_ENABLED));
         Configuration::updateValue(self::CONF_LIMIT,     $limit);
         Configuration::updateValue(self::CONF_WINDOW,    $window);
-        Configuration::updateValue(self::CONF_BOT_SCORE, $botScore);
+        Configuration::updateValue(self::CONF_BOT_SCORE, (int) $botScore);
 
         return $this->displayConfirmation($this->l('Settings saved successfully.'));
+    }
+
+    private function counters()
+    {
+        return new FacetLimitCounters(_PS_ROOT_DIR_ . '/var/cache', $this->context->shop->id);
+    }
+
+    private function collectCategoryNames(array $nodes, $parentPath, array &$names)
+    {
+        foreach ($nodes as $node) {
+            $path = $parentPath === '' ? $node['name'] : $parentPath . ' / ' . $node['name'];
+            $names[(int) $node['id_category']] = $path;
+            if (!empty($node['children'])) {
+                $this->collectCategoryNames($node['children'], $path, $names);
+            }
+        }
+    }
+
+    private function admissionSettings()
+    {
+        $stored = json_decode((string) Configuration::get(self::CONF_AGGREGATE), true);
+
+        return $stored ?: ['mode' => 'off', 'shop' => 150, 'categories' => []];
+    }
+
+    private function saveAdmission()
+    {
+        if (Shop::isFeatureActive() && Shop::getContext() !== Shop::CONTEXT_SHOP) {
+            return $this->displayError($this->l('Select a single shop to configure shared limits.'));
+        }
+        $mode = Tools::getValue('admission_mode');
+        $limit = Tools::getValue('admission_shop');
+        $rules = Tools::getValue('admission_categories');
+        if (!in_array($mode, ['off', 'observe', 'protect'], true)
+            || !is_string($limit) || !preg_match('/^[1-9][0-9]{0,3}$/D', $limit)
+            || !is_string($rules) || strlen($rules) > 1024) {
+            return $this->displayError($this->l('Invalid shared limit settings.'));
+        }
+        $categories = [];
+        foreach ($rules === '' ? [] : explode(',', $rules) as $pair) {
+            if (!preg_match('/^([1-9][0-9]{0,8})=([1-9][0-9]{0,3})$/D', trim($pair), $match)
+                || isset($categories[$match[1]]) || count($categories) >= 64) {
+                return $this->displayError($this->l('Enter up to 64 distinct category ID=limit pairs.'));
+            }
+            $category = new Category((int) $match[1], null, (int) $this->context->shop->id);
+            if (!Validate::isLoadedObject($category) || !$category->isAssociatedToShop()) {
+                return $this->displayError($this->l('A category does not belong to this shop.'));
+            }
+            $categories[(int) $match[1]] = (int) $match[2];
+        }
+        $settings = ['mode' => $mode, 'shop' => (int) $limit, 'categories' => $categories];
+        if (!Configuration::updateValue(
+            self::CONF_AGGREGATE,
+            json_encode($settings),
+            false,
+            (int) $this->context->shop->id_shop_group,
+            (int) $this->context->shop->id
+        )) {
+            return $this->displayError($this->l('Could not save shared limits.'));
+        }
+
+        return $this->displayConfirmation($this->l('Shared limits saved.'));
     }
 
     protected function handleWhitelistSave(): string
@@ -235,7 +315,10 @@ class Tec_FacetLimit extends Module
         if (file_exists($logFile)) {
             file_put_contents($logFile, '');
         }
-        $this->cleanupCntFiles(0);
+        foreach (glob(_PS_ROOT_DIR_ . '/var/cache/tec_fl_*.cnt') ?: [] as $legacyCounter) {
+            @unlink($legacyCounter);
+        }
+        $this->counters()->clearIpCounts();
         return $this->displayConfirmation($this->l('Log file cleared.'));
     }
 
@@ -318,7 +401,7 @@ class Tec_FacetLimit extends Module
 
     public function uninstall(): bool
     {
-        foreach ([self::CONF_ENABLED, self::CONF_LIMIT, self::CONF_WINDOW, self::CONF_BOT_SCORE, self::CONF_WHITELIST] as $key) {
+        foreach ([self::CONF_ENABLED, self::CONF_LIMIT, self::CONF_WINDOW, self::CONF_BOT_SCORE, self::CONF_WHITELIST, self::CONF_AGGREGATE] as $key) {
             Configuration::deleteByName($key);
         }
         return parent::uninstall();
@@ -344,8 +427,26 @@ class Tec_FacetLimit extends Module
             return;
         }
 
+        $settings = $this->admissionSettings();
+        if ($settings['mode'] !== 'off') {
+            $categoryId = 0;
+            if ($this->getRequestControllerName($params) === 'category') {
+                $categoryId = filter_var(Tools::getValue('id_category'), FILTER_VALIDATE_INT, [
+                    'options' => ['min_range' => 1],
+                ]);
+            }
+            $retry = $this->counters()->admission($settings['shop'], $settings['categories'], $categoryId, $settings['mode']);
+            if ($retry > 0 && $settings['mode'] === 'protect') {
+                $this->sendBlocked($retry);
+            }
+        }
+
+        if (!isset($_GET['q']) || !$this->isFacetedQValue(trim($_GET['q']))) {
+            return;
+        }
+
         // ── 1. Bot fingerprinting (efficace contro botnet distribuite) ────────
-        $scoreThreshold = (int) (Configuration::get(self::CONF_BOT_SCORE) ?: self::DEFAULT_BOT_SCORE);
+        $scoreThreshold = $this->getBotScoreThreshold();
         [$botScore, $botReasons] = $this->computeBotScore();
 
         if ($botScore >= $scoreThreshold) {
@@ -412,7 +513,7 @@ class Tec_FacetLimit extends Module
             }
         }
 
-        return isset($_GET['q']) && $this->isFacetedQValue(trim($_GET['q']));
+        return trim((string) Tools::getValue('q')) !== '';
     }
 
     /**
@@ -487,36 +588,24 @@ class Tec_FacetLimit extends Module
     //  Bot fingerprinting
     // -------------------------------------------------------------------------
 
+    private function getBotScoreThreshold(): int
+    {
+        $threshold = (int) Configuration::get(self::CONF_BOT_SCORE);
+        if ($threshold === 7) {
+            return 6;
+        }
+
+        return $threshold >= 1 && $threshold <= 6 ? $threshold : self::DEFAULT_BOT_SCORE;
+    }
+
     /**
-     * Calcola un punteggio "probabilità bot" analizzando le caratteristiche
-     * della richiesta HTTP. Restituisce [score, motivi[]] per il log.
-     *
-     * Logica soglie (default threshold = 3):
-     *   HTTP/1.0                      → score 4 → blocco immediato da solo
-     *   User-Agent assente            → score 3 → blocco immediato da solo
-     *   No cookie PS + no Referer     → score 3 → blocco (combinazione)
-     *   Solo no cookie PS             → score 2 → passa (primo accesso diretto legittimo)
-     *   Solo no Referer               → score 1 → passa (link da email/bookmark)
-     *
-     * @return array{0: int, 1: string[]}
+     * Return the combined score and the missing request signals.
      */
     private function computeBotScore(): array
     {
         $score   = 0;
         $reasons = [];
 
-        // HTTP/1.0: ignorato dietro reverse proxy (Nginx, Cloudflare, ecc.) perché
-        // SERVER_PROTOCOL riflette la connessione interna, non quella del client reale.
-        $behindProxy = isset($_SERVER['HTTP_X_FORWARDED_FOR'])
-            || isset($_SERVER['HTTP_X_REAL_IP'])
-            || isset($_SERVER['HTTP_CF_CONNECTING_IP']);
-
-        if (!$behindProxy && ($_SERVER['SERVER_PROTOCOL'] ?? '') === 'HTTP/1.0') {
-            $score += self::SCORE_HTTP10;
-            $reasons[] = 'http10';
-        }
-
-        // User-Agent assente
         $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
         if ($ua === '') {
             $score += self::SCORE_NO_UA;
@@ -545,7 +634,7 @@ class Tec_FacetLimit extends Module
     private function hasPsSessionCookie(): bool
     {
         foreach (array_keys($_COOKIE) as $name) {
-            if (strncmp($name, 'PrestaShop-', 11) === 0) {
+            if (strncmp($name, 'PrestaShop-', strlen('PrestaShop-')) === 0) {
                 return true;
             }
         }
@@ -557,59 +646,27 @@ class Tec_FacetLimit extends Module
     // -------------------------------------------------------------------------
 
     /**
-     * Incrementa il contatore IP nella finestra corrente.
-     * APCu (atomico) se disponibile, altrimenti PS Cache.
+     * Increment the current shop and IP window in APCu or a locked file shard.
      */
     private function increment(string $ip, int $window): int
     {
-        $key = 'tec_fl_' . md5($ip) . '_' . (int) floor(time() / $window);
-
-        if (function_exists('apcu_inc')) {
-            // Chiamata via variabile per compatibilità con il validatore PS (APCu è opzionale)
-            $fn_inc   = 'apcu_inc';
-            $fn_store = 'apcu_store';
-            $success  = false;
-            $count    = $fn_inc($key, 1, $success, $window * 2);
-            if (!$success) {
-                $fn_store($key, 1, $window * 2);
-                return 1;
+        if ($this->hasApcu()) {
+            $key = 'tec_fl_' . md5(_PS_ROOT_DIR_ . ':' . $this->context->shop->id . ':' . $ip)
+                . '_' . $window . '_' . (int) floor(time() / $window);
+            apcu_add($key, 0, $window * 2);
+            $success = false;
+            $count = apcu_inc($key, 1, $success);
+            if ($success) {
+                return (int) $count;
             }
-            return (int) $count;
         }
 
-        $file = _PS_ROOT_DIR_ . '/var/cache/tec_fl_' . md5($ip) . '_' . (int) floor(time() / $window) . '.cnt';
-        $fp   = @fopen($file, 'c+');
-        if (!$fp) {
-            return 1;
-        }
-        flock($fp, LOCK_EX);
-        $count = (int) fgets($fp) + 1;
-        ftruncate($fp, 0);
-        rewind($fp);
-        fwrite($fp, (string) $count);
-        flock($fp, LOCK_UN);
-        fclose($fp);
-
-        // pulizia probabilistica: 1% delle richieste rimuove i file .cnt scaduti
-        if (random_int(1, 100) === 1) {
-            $this->cleanupCntFiles($window * 3);
-        }
-
-        return $count;
+        return $this->counters()->incrementIp($ip, $window);
     }
 
-    /**
-     * Rimuove i file .cnt del rate limiter.
-     * $maxAge = 0 → elimina tutti; altrimenti solo quelli più vecchi di $maxAge secondi.
-     */
-    private function cleanupCntFiles(int $maxAge): void
+    private function hasApcu()
     {
-        $pattern = _PS_ROOT_DIR_ . '/var/cache/tec_fl_*.cnt';
-        foreach (glob($pattern) ?: [] as $file) {
-            if ($maxAge === 0 || (time() - (int) filemtime($file)) > $maxAge) {
-                @unlink($file);
-            }
-        }
+        return function_exists('apcu_enabled') && apcu_enabled();
     }
 
     // -------------------------------------------------------------------------
@@ -654,6 +711,7 @@ class Tec_FacetLimit extends Module
     private function sendBlocked(int $retryAfter = 0): void
     {
         http_response_code(429);
+        header('Cache-Control: no-store');
         if ($retryAfter > 0) {
             header('Retry-After: ' . $retryAfter);
         }
