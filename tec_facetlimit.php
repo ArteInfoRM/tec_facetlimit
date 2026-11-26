@@ -4,7 +4,6 @@
  *
  * @author    Arte e Informatica <helpdesk@tecnoacquisti.com>
  * @copyright 2009-2026 Tecnoacquisti.com
- * @version   1.2.0
  * @license   One Paid Licence By WebSite Using This Module.
  */
 if (!defined('_PS_VERSION_')) {
@@ -13,32 +12,35 @@ if (!defined('_PS_VERSION_')) {
 
 require_once __DIR__ . '/FacetLimitCounters.php';
 
+/**
+ * @version 1.2.0
+ */
 class Tec_FacetLimit extends Module
 {
-    const CONF_LIMIT      = 'TEC_FL_LIMIT';
-    const CONF_WINDOW     = 'TEC_FL_WINDOW';
-    const CONF_WHITELIST  = 'TEC_FL_WHITELIST';
-    const CONF_ENABLED    = 'TEC_FL_ENABLED';
-    const CONF_BOT_SCORE  = 'TEC_FL_BOT_SCORE';
-    const CONF_AGGREGATE = 'TEC_FL_AGGREGATE';
-    const LOG_FILE        = 'tec_facetlimit.log';
+    public const CONF_LIMIT = 'TEC_FL_LIMIT';
+    public const CONF_WINDOW = 'TEC_FL_WINDOW';
+    public const CONF_WHITELIST = 'TEC_FL_WHITELIST';
+    public const CONF_ENABLED = 'TEC_FL_ENABLED';
+    public const CONF_BOT_SCORE = 'TEC_FL_BOT_SCORE';
+    public const CONF_AGGREGATE = 'TEC_FL_AGGREGATE';
+    public const LOG_FILE = 'tec_facetlimit.log';
 
-    const DEFAULT_LIMIT      = 30;   // max richieste ?q= per finestra per IP
-    const DEFAULT_WINDOW     = 60;   // finestra in secondi
-    const DEFAULT_BOT_SCORE  = 4;    // soglia punteggio bot oltre la quale si blocca
+    public const DEFAULT_LIMIT = 30;   // max richieste ?q= per finestra per IP
+    public const DEFAULT_WINDOW = 60;   // finestra in secondi
+    public const DEFAULT_BOT_SCORE = 4;    // soglia punteggio bot oltre la quale si blocca
 
-    const SCORE_NO_PS_COOKIE  = 2;
-    const SCORE_NO_REFERER    = 1;
-    const SCORE_NO_UA         = 3;
+    public const SCORE_NO_PS_COOKIE = 2;
+    public const SCORE_NO_REFERER = 1;
+    public const SCORE_NO_UA = 3;
 
     public function __construct()
     {
-        $this->name          = 'tec_facetlimit';
-        $this->tab           = 'administration';
-        $this->version       = '1.2.0';
-        $this->author        = 'Tecnoacquisti.com';
+        $this->name = 'tec_facetlimit';
+        $this->tab = 'administration';
+        $this->version = '1.2.0';
+        $this->author = 'Tecnoacquisti.com';
         $this->need_instance = 0;
-        $this->bootstrap     = true;
+        $this->bootstrap = true;
 
         parent::__construct();
 
@@ -55,9 +57,9 @@ class Tec_FacetLimit extends Module
     {
         return parent::install()
             && $this->registerHook('actionDispatcherBefore')
-            && Configuration::updateValue(self::CONF_ENABLED,   1)
-            && Configuration::updateValue(self::CONF_LIMIT,     self::DEFAULT_LIMIT)
-            && Configuration::updateValue(self::CONF_WINDOW,    self::DEFAULT_WINDOW)
+            && Configuration::updateValue(self::CONF_ENABLED, 1)
+            && Configuration::updateValue(self::CONF_LIMIT, self::DEFAULT_LIMIT)
+            && Configuration::updateValue(self::CONF_WINDOW, self::DEFAULT_WINDOW)
             && Configuration::updateValue(self::CONF_BOT_SCORE, self::DEFAULT_BOT_SCORE)
             && Configuration::updateValue(self::CONF_WHITELIST, '');
     }
@@ -104,11 +106,11 @@ class Tec_FacetLimit extends Module
             'admission_stats' => $this->counters()->snapshot(),
             'current_minute' => (int) floor(time() / 60),
             'single_shop' => $singleShop,
-            'current_ip'     => $this->getClientIp(),
-            'whitelist'      => (string) Configuration::get(self::CONF_WHITELIST),
-            'config_url'     => $configUrl,
-            'log_entries'    => $this->getLogEntries(),
-            'log_size'       => $this->getLogSize(),
+            'current_ip' => $this->getClientIp(),
+            'whitelist' => (string) Configuration::get(self::CONF_WHITELIST),
+            'config_url' => $configUrl,
+            'log_entries' => $this->getLogEntries(),
+            'log_size' => $this->getLogSize(),
             'apcu_available' => $this->hasApcu(),
         ]);
 
@@ -120,22 +122,23 @@ class Tec_FacetLimit extends Module
 
     protected function renderForm(): string
     {
-        $helper                           = new HelperForm();
-        $helper->show_toolbar             = false;
-        $helper->table                    = $this->table;
-        $helper->module                   = $this;
-        $helper->default_form_language    = $this->context->language->id;
+        $helper = new HelperForm();
+        $helper->show_toolbar = false;
+        $helper->table = $this->table;
+        $helper->module = $this;
+        $helper->default_form_language = $this->context->language->id;
         $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG', 0);
-        $helper->identifier               = $this->identifier;
-        $helper->submit_action            = 'submitTecFacetLimitModule';
-        $helper->currentIndex             = $this->context->link->getAdminLink('AdminModules', false)
+        $helper->identifier = $this->identifier;
+        $helper->submit_action = 'submitTecFacetLimitModule';
+        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
             . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
-        $helper->token                    = Tools::getAdminTokenLite('AdminModules');
-        $helper->tpl_vars                 = [
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        $helper->tpl_vars = [
             'fields_value' => $this->getConfigFormValues(),
-            'languages'    => $this->context->controller->getLanguages(),
-            'id_language'  => $this->context->language->id,
+            'languages' => $this->context->controller->getLanguages(),
+            'id_language' => $this->context->language->id,
         ];
+
         return $helper->generateForm([$this->getConfigForm()]);
     }
 
@@ -144,36 +147,36 @@ class Tec_FacetLimit extends Module
         return [
             'form' => [
                 'legend' => ['title' => $this->l('Settings'), 'icon' => 'icon-cogs'],
-                'input'  => [
+                'input' => [
                     [
-                        'type'    => 'switch',
-                        'label'   => $this->l('Enable protection'),
-                        'name'    => self::CONF_ENABLED,
+                        'type' => 'switch',
+                        'label' => $this->l('Enable protection'),
+                        'name' => self::CONF_ENABLED,
                         'is_bool' => true,
-                        'values'  => [
+                        'values' => [
                             ['id' => 'enabled_on',  'value' => 1, 'label' => $this->l('Yes')],
                             ['id' => 'enabled_off', 'value' => 0, 'label' => $this->l('No')],
                         ],
                     ],
                     [
-                        'type'  => 'text',
+                        'type' => 'text',
                         'label' => $this->l('Max requests per window (rate limit)'),
-                        'name'  => self::CONF_LIMIT,
+                        'name' => self::CONF_LIMIT,
                         'class' => 'fixed-width-sm',
-                        'desc'  => $this->l('Max number of ?q= requests allowed per IP in the time window. Default: 30.'),
+                        'desc' => $this->l('Max number of ?q= requests allowed per IP in the time window. Default: 30.'),
                     ],
                     [
-                        'type'  => 'text',
+                        'type' => 'text',
                         'label' => $this->l('Time window (seconds)'),
-                        'name'  => self::CONF_WINDOW,
+                        'name' => self::CONF_WINDOW,
                         'class' => 'fixed-width-sm',
-                        'desc'  => $this->l('Duration of the rate-limit window in seconds. Default: 60.'),
+                        'desc' => $this->l('Duration of the rate-limit window in seconds. Default: 60.'),
                     ],
                     [
-                        'type'    => 'select',
-                        'label'   => $this->l('Bot score threshold'),
-                        'name'    => self::CONF_BOT_SCORE,
-                        'desc'    => $this->l('A request is blocked when its score reaches the threshold. Higher values allow more requests. Default: 4.'),
+                        'type' => 'select',
+                        'label' => $this->l('Bot score threshold'),
+                        'name' => self::CONF_BOT_SCORE,
+                        'desc' => $this->l('A request is blocked when its score reaches the threshold. Higher values allow more requests. Default: 4.'),
                         'options' => [
                             'query' => [
                                 ['id' => 1, 'name' => '1 - ' . $this->l('Any one signal is missing')],
@@ -183,7 +186,7 @@ class Tec_FacetLimit extends Module
                                 ['id' => 5, 'name' => '5 - ' . $this->l('Both User-Agent and shop cookie are missing')],
                                 ['id' => 6, 'name' => '6 - ' . $this->l('All three signals are missing')],
                             ],
-                            'id'   => 'id',
+                            'id' => 'id',
                             'name' => 'name',
                         ],
                     ],
@@ -196,9 +199,9 @@ class Tec_FacetLimit extends Module
     protected function getConfigFormValues(): array
     {
         return [
-            self::CONF_ENABLED   => (int) Configuration::get(self::CONF_ENABLED),
-            self::CONF_LIMIT     => (int) (Configuration::get(self::CONF_LIMIT)     ?: self::DEFAULT_LIMIT),
-            self::CONF_WINDOW    => (int) (Configuration::get(self::CONF_WINDOW)    ?: self::DEFAULT_WINDOW),
+            self::CONF_ENABLED => (int) Configuration::get(self::CONF_ENABLED),
+            self::CONF_LIMIT => (int) (Configuration::get(self::CONF_LIMIT) ?: self::DEFAULT_LIMIT),
+            self::CONF_WINDOW => (int) (Configuration::get(self::CONF_WINDOW) ?: self::DEFAULT_WINDOW),
             self::CONF_BOT_SCORE => $this->getBotScoreThreshold(),
         ];
     }
@@ -220,9 +223,9 @@ class Tec_FacetLimit extends Module
             return $this->displayError($this->l('Bot score threshold must be between 1 and 6.'));
         }
 
-        Configuration::updateValue(self::CONF_ENABLED,   (int) Tools::getValue(self::CONF_ENABLED));
-        Configuration::updateValue(self::CONF_LIMIT,     $limit);
-        Configuration::updateValue(self::CONF_WINDOW,    $window);
+        Configuration::updateValue(self::CONF_ENABLED, (int) Tools::getValue(self::CONF_ENABLED));
+        Configuration::updateValue(self::CONF_LIMIT, $limit);
+        Configuration::updateValue(self::CONF_WINDOW, $window);
         Configuration::updateValue(self::CONF_BOT_SCORE, (int) $botScore);
 
         return $this->displayConfirmation($this->l('Settings saved successfully.'));
@@ -292,8 +295,8 @@ class Tec_FacetLimit extends Module
 
     protected function handleWhitelistSave(): string
     {
-        $raw     = (string) Tools::getValue('tec_fl_whitelist_value');
-        $ips     = array_values(array_unique(array_filter(array_map('trim', explode(',', $raw)))));
+        $raw = (string) Tools::getValue('tec_fl_whitelist_value');
+        $ips = array_values(array_unique(array_filter(array_map('trim', explode(',', $raw)))));
         $invalid = [];
         foreach ($ips as $ip) {
             if (!filter_var($ip, FILTER_VALIDATE_IP)) {
@@ -306,6 +309,7 @@ class Tec_FacetLimit extends Module
             );
         }
         Configuration::updateValue(self::CONF_WHITELIST, implode(',', $ips));
+
         return $this->displayConfirmation($this->l('Whitelist saved.'));
     }
 
@@ -319,6 +323,7 @@ class Tec_FacetLimit extends Module
             @unlink($legacyCounter);
         }
         $this->counters()->clearIpCounts();
+
         return $this->displayConfirmation($this->l('Log file cleared.'));
     }
 
@@ -337,7 +342,7 @@ class Tec_FacetLimit extends Module
             return [];
         }
 
-        $lines   = array_reverse($this->tailFile($logFile, 100));
+        $lines = array_reverse($this->tailFile($logFile, 100));
         $entries = [];
         foreach ($lines as $line) {
             $cols = explode("\t", rtrim($line), 6);
@@ -345,14 +350,15 @@ class Tec_FacetLimit extends Module
                 continue;
             }
             $entries[] = [
-                'ts'   => $cols[0],
+                'ts' => $cols[0],
                 'type' => $cols[1],
-                'ip'   => $cols[2],
-                'why'  => $cols[3],
-                'uri'  => $cols[4],
-                'ua'   => $cols[5] ?? '',
+                'ip' => $cols[2],
+                'why' => $cols[3],
+                'uri' => $cols[4],
+                'ua' => $cols[5] ?? '',
             ];
         }
+
         return $entries;
     }
 
@@ -363,6 +369,7 @@ class Tec_FacetLimit extends Module
             return '';
         }
         $size = filesize($logFile);
+
         return $size > 0 ? number_format($size / 1024, 1) . ' KB' : '0 KB';
     }
 
@@ -377,19 +384,19 @@ class Tec_FacetLimit extends Module
         if (!$fp) {
             return [];
         }
-        $lines  = [];
+        $lines = [];
         $buffer = '';
         fseek($fp, 0, SEEK_END);
         $pos = ftell($fp);
 
         while ($pos > 0 && count($lines) < $n) {
-            $chunk  = min(4096, $pos);
-            $pos   -= $chunk;
+            $chunk = min(4096, $pos);
+            $pos -= $chunk;
             fseek($fp, $pos);
             $buffer = fread($fp, $chunk) . $buffer;
-            $parts  = explode("\n", $buffer);
+            $parts = explode("\n", $buffer);
             $buffer = array_shift($parts);
-            $lines  = array_merge(array_reverse($parts), $lines);
+            $lines = array_merge(array_reverse($parts), $lines);
         }
         if ($buffer !== '') {
             array_unshift($lines, $buffer);
@@ -404,6 +411,7 @@ class Tec_FacetLimit extends Module
         foreach ([self::CONF_ENABLED, self::CONF_LIMIT, self::CONF_WINDOW, self::CONF_BOT_SCORE, self::CONF_WHITELIST, self::CONF_AGGREGATE] as $key) {
             Configuration::deleteByName($key);
         }
+
         return parent::uninstall();
     }
 
@@ -455,7 +463,7 @@ class Tec_FacetLimit extends Module
         }
 
         // ── 2. Rate limiting per IP (efficace contro singola sorgente) ────────
-        $limit  = (int) (Configuration::get(self::CONF_LIMIT)  ?: self::DEFAULT_LIMIT);
+        $limit = (int) (Configuration::get(self::CONF_LIMIT) ?: self::DEFAULT_LIMIT);
         $window = (int) (Configuration::get(self::CONF_WINDOW) ?: self::DEFAULT_WINDOW);
 
         if ($this->increment($ip, $window) > $limit) {
@@ -603,7 +611,7 @@ class Tec_FacetLimit extends Module
      */
     private function computeBotScore(): array
     {
-        $score   = 0;
+        $score = 0;
         $reasons = [];
 
         $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
@@ -638,6 +646,7 @@ class Tec_FacetLimit extends Module
                 return true;
             }
         }
+
         return false;
     }
 
@@ -653,9 +662,11 @@ class Tec_FacetLimit extends Module
         if ($this->hasApcu()) {
             $key = 'tec_fl_' . md5(_PS_ROOT_DIR_ . ':' . $this->context->shop->id . ':' . $ip)
                 . '_' . $window . '_' . (int) floor(time() / $window);
-            apcu_add($key, 0, $window * 2);
+            $add = 'apcu_add';
+            $increment = 'apcu_inc';
+            $add($key, 0, $window * 2);
             $success = false;
-            $count = apcu_inc($key, 1, $success);
+            $count = $increment($key, 1, $success);
             if ($success) {
                 return (int) $count;
             }
@@ -666,7 +677,9 @@ class Tec_FacetLimit extends Module
 
     private function hasApcu()
     {
-        return function_exists('apcu_enabled') && apcu_enabled();
+        $enabled = 'apcu_enabled';
+
+        return function_exists($enabled) && function_exists('apcu_add') && function_exists('apcu_inc') && $enabled();
     }
 
     // -------------------------------------------------------------------------
@@ -691,6 +704,7 @@ class Tec_FacetLimit extends Module
     private function getClientIp(): string
     {
         $ip = Tools::getRemoteAddr();
+
         return $ip ?: ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
     }
 
@@ -705,6 +719,7 @@ class Tec_FacetLimit extends Module
                 return true;
             }
         }
+
         return false;
     }
 
@@ -724,9 +739,9 @@ class Tec_FacetLimit extends Module
         }
 
         // Navigazione diretta: pagina HTML con link di ritorno alla categoria
-        $uri   = $_SERVER['REQUEST_URI'] ?? '/';
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
         $parts = parse_url($uri);
-        $back  = $parts['path'] ?? '/';
+        $back = $parts['path'] ?? '/';
         if (!empty($parts['query'])) {
             parse_str($parts['query'], $params);
             unset($params['q']);
@@ -749,16 +764,16 @@ class Tec_FacetLimit extends Module
      */
     private function logBlocked(string $ip, string $type, array $reasons): void
     {
-        $logDir  = _PS_ROOT_DIR_ . '/var/logs/';
+        $logDir = _PS_ROOT_DIR_ . '/var/logs/';
         $logFile = $logDir . self::LOG_FILE;
 
         if (!is_dir($logDir)) {
             return;
         }
 
-        $uri  = $_SERVER['REQUEST_URI'] ?? '-';
-        $ua   = substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? '-'), 0, 200);
-        $why  = implode(',', $reasons);
+        $uri = $_SERVER['REQUEST_URI'] ?? '-';
+        $ua = substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? '-'), 0, 200);
+        $why = implode(',', $reasons);
         $line = date('Y-m-d H:i:s') . "\t" . $type . "\t" . $ip . "\t" . $why . "\t" . $uri . "\t" . $ua . PHP_EOL;
 
         @file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX);
